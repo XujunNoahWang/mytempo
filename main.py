@@ -10,6 +10,7 @@ __version__ = '0.1.6'
 
 class LoadingWindow:
     def __init__(self, parent: Optional[tk.Tk] = None, title: str = "Loading") -> None:
+        self.parent = parent  # 保存父窗口引用
         if parent:
             self.root = tk.Toplevel(parent)
         else:
@@ -114,11 +115,17 @@ class LoadingWindow:
         time.sleep(0.2)  # Brief display of completion status
         
     def destroy(self) -> None:
-        """Destroy the loading window"""
+        """销毁加载窗口并将焦点返回给父窗口"""
         self.root.destroy()
+        if self.parent:
+            self.parent.focus_force()  # 强制将焦点返回给父窗口
 
 class DocumentViewer:
-    # 定义字体大小列表
+    """文档查看器类"""
+    # 版本号
+    VERSION = "0.1.7"  # 修复了键盘事件处理，优化了字体大小调整的用户体验
+    
+    # 支持的字体大小
     FONT_SIZES = [10, 11, 12, 14, 16, 18, 20, 22, 24, 28, 32, 36, 48, 60, 72]
     DEFAULT_FONT_SIZE = 24
 
@@ -147,46 +154,49 @@ class DocumentViewer:
         self.window.after(100, self.load_document)
         
         # 绑定键盘事件
-        self.window.bind('<Left>', self.decrease_font_size)
-        self.window.bind('<Right>', self.increase_font_size)
+        self.window.bind('<Left>', self.handle_left_key)
+        self.window.bind('<Right>', self.handle_right_key)
 
     def update_window_title(self) -> None:
         """更新窗口标题，包含文件名和字体大小信息"""
-        title = f"My Tempo - {os.path.basename(self.file_path)} - Size: {self.current_font_size}px (← →)"
+        title = f"My Tempo - {os.path.basename(self.file_path)} - Size: {self.current_font_size}px (← → to adjust)"
         self.window.title(title)
 
-    def increase_font_size(self, event: Optional[tk.Event] = None) -> None:
-        """增加字体大小"""
-        current_index = self.FONT_SIZES.index(self.current_font_size)
-        if current_index < len(self.FONT_SIZES) - 1:
-            self.current_font_size = self.FONT_SIZES[current_index + 1]
+    def handle_left_key(self, event: tk.Event) -> str:
+        """处理左键事件"""
+        self.decrease_font_size()
+        return 'break'
+
+    def handle_right_key(self, event: tk.Event) -> str:
+        """处理右键事件"""
+        self.increase_font_size()
+        return 'break'
+
+    def decrease_font_size(self) -> None:
+        """减小字体大小"""
+        if self.current_font_size > 10:
+            self.current_font_size = next(size for size in reversed(self.FONT_SIZES) if size < self.current_font_size)
             self.update_font_size()
 
-    def decrease_font_size(self, event: Optional[tk.Event] = None) -> None:
-        """减小字体大小"""
-        current_index = self.FONT_SIZES.index(self.current_font_size)
-        if current_index > 0:
-            self.current_font_size = self.FONT_SIZES[current_index - 1]
+    def increase_font_size(self) -> None:
+        """增加字体大小"""
+        if self.current_font_size < 72:
+            self.current_font_size = next(size for size in self.FONT_SIZES if size > self.current_font_size)
             self.update_font_size()
 
     def update_font_size(self) -> None:
         """更新字体大小"""
-        if hasattr(self, 'text_widget'):
-            # 保存当前滚动位置
-            current_position = self.text_widget.yview()
-            
-            # 更新字体配置
-            self.text_widget.tag_configure('content', font=('Noto Sans SC', self.current_font_size))
-            
-            # 如果还没有应用tag，则应用tag
-            if not self.text_widget.tag_ranges('content'):
-                self.text_widget.tag_add('content', '1.0', 'end')
-            
-            # 恢复滚动位置
-            self.text_widget.yview_moveto(current_position[0])
-            
-            # 更新标题
-            self.update_window_title()
+        # 临时启用文本框以更新字体
+        self.text_widget.config(state='normal')
+        content = self.text_widget.get('1.0', 'end-1c')
+        self.text_widget.delete('1.0', 'end')
+        self.text_widget.config(font=('Noto Sans SC', self.current_font_size))
+        self.text_widget.insert('1.0', content)
+        self.text_widget.config(state='disabled')
+        
+        # 更新标题栏显示
+        title = f'MyTempo - Font Size: {self.current_font_size}px (← → to adjust)'
+        self.window.title(title)
 
     def center_window(self) -> None:
         """将窗口居中显示"""
@@ -233,9 +243,17 @@ class DocumentViewer:
             # 销毁加载窗口
             self.loading_window.destroy()
             
+            # 确保文档查看窗口和文本框获得焦点
+            self.window.focus_force()
+            self.text_widget.focus_set()
+            
         except Exception as e:
             self.loading_window.destroy()
             self.show_error(str(e))
+            # 发生错误时也确保窗口和文本框获得焦点
+            self.window.focus_force()
+            if hasattr(self, 'text_widget'):
+                self.text_widget.focus_set()
         
     def read_file_content(self) -> str:
         """读取文件内容"""
@@ -254,12 +272,12 @@ class DocumentViewer:
             
     def display_content(self, content: str) -> None:
         """显示文档内容"""
-        # 创建字体tag
-        self.text_widget.tag_configure('content', font=('Noto Sans SC', self.current_font_size))
-        
-        # 插入内容并应用tag
-        self.text_widget.insert('1.0', content, 'content')
-        self.text_widget.config(state='disabled')  # 设为只读
+        # 临时启用文本框以插入内容
+        self.text_widget.config(state='normal')
+        self.text_widget.delete('1.0', 'end')
+        self.text_widget.insert('1.0', content)
+        # 重新禁用文本框
+        self.text_widget.config(state='disabled')
         
     def show_error(self, error_msg: str) -> None:
         """显示错误信息"""
@@ -277,63 +295,71 @@ class DocumentViewer:
             content_frame,
             bg='#1a1a1a',
             fg='#ffffff',
-            font=('Noto Sans SC', self.current_font_size),  # 使用当前字体大小
+            font=('Noto Sans SC', self.current_font_size),
             wrap='word',
             padx=20,
             pady=20,
             border=0,
             insertbackground='#ffffff',
             selectbackground='#404040',
-            selectforeground='#ffffff'
+            selectforeground='#ffffff',
+            cursor='arrow',  # 使用箭头光标而不是文本光标
+            state='disabled'  # 设置为禁用状态，防止编辑
         )
         
         # 布局 - 文本框填满整个区域
         self.text_widget.pack(expand=True, fill='both')
         
-        # 设置文本框焦点，使其能响应键盘事件
-        self.text_widget.focus_set()
-        
-        # 绑定键盘事件
+        # 绑定键盘事件到文本框和窗口
+        self.bind_keyboard_events()
+
+    def bind_keyboard_events(self) -> None:
+        """绑定所有键盘事件"""
+        # 窗口级别的快捷键
         self.window.bind('<Escape>', lambda e: self.close_window())
         self.window.bind('<Control-w>', lambda e: self.close_window())
         
-        # 绑定上下键滚动事件
+        # 字体大小调整绑定到窗口级别
+        self.window.bind('<Left>', self.handle_left_key)
+        self.window.bind('<Right>', self.handle_right_key)
+        
+        # 文本框级别的导航键
         self.text_widget.bind('<Up>', self.scroll_up)
         self.text_widget.bind('<Down>', self.scroll_down)
         self.text_widget.bind('<Prior>', self.page_up)  # Page Up
         self.text_widget.bind('<Next>', self.page_down)  # Page Down
         self.text_widget.bind('<Home>', self.go_to_start)  # Home
         self.text_widget.bind('<End>', self.go_to_end)  # End
-        
+
     def scroll_up(self, event: tk.Event) -> str:
         """向上滚动"""
-        self.text_widget.yview_scroll(-1, "units")
-        return "break"  # 阻止默认行为
+        self.text_widget.yview_scroll(-1, 'units')
+        return 'break'  # 阻止默认的光标移动行为
         
     def scroll_down(self, event: tk.Event) -> str:
         """向下滚动"""
-        self.text_widget.yview_scroll(1, "units")
-        return "break"  # 阻止默认行为
+        self.text_widget.yview_scroll(1, 'units')
+        return 'break'  # 阻止默认的光标移动行为
         
     def page_up(self, event: tk.Event) -> str:
         """向上翻页"""
-        self.text_widget.yview_scroll(-10, "units")
-        return "break"
+        self.text_widget.yview_scroll(-1, 'pages')
+        return 'break'  # 阻止默认的光标移动行为
         
     def page_down(self, event: tk.Event) -> str:
         """向下翻页"""
-        self.text_widget.yview_scroll(10, "units")
-        return "break"
+        self.text_widget.yview_scroll(1, 'pages')
+        return 'break'  # 阻止默认的光标移动行为
         
     def go_to_start(self, event: tk.Event) -> str:
-        """跳转到文档开头"""
-        self.text_widget.see("1.0")
-        return "break"
+        """跳转到开头"""
+        self.text_widget.yview_moveto(0)
+        return 'break'  # 阻止默认的光标移动行为
         
     def go_to_end(self, event: tk.Event) -> str:
-        """跳转到文档结尾"""
-        self.text_widget.see("end")
-        return "break"
+        """跳转到结尾"""
+        self.text_widget.yview_moveto(1)
+        return 'break'  # 阻止默认的光标移动行为
 
     def close_window(self) -> None:
         """关闭窗口并显示主窗口"""
@@ -368,6 +394,7 @@ class MyTempoApp:
         # Close loading window and show main window
         loading_window.destroy()
         self.root.deiconify()
+        self.root.focus_force()  # 确保主窗口获得焦点
         
     def center_window(self) -> None:
         """Center window on screen"""
