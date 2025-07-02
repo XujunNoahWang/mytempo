@@ -6,7 +6,7 @@ import time
 from typing import List, Tuple, Optional
 from font_loader import load_fonts
 
-__version__ = '0.1.1'
+__version__ = '0.1.2'
 
 class LoadingWindow:
     def __init__(self) -> None:
@@ -107,6 +107,128 @@ class LoadingWindow:
         self.font_label.config(text="加载完成")
         self.root.update()
         time.sleep(0.2)  # 短暂显示完成状态
+
+class DocumentViewer:
+    def __init__(self, parent: tk.Tk, file_path: str) -> None:
+        self.parent = parent
+        self.file_path = file_path
+        
+        # 创建文档查看窗口
+        self.window = tk.Toplevel(parent)
+        self.window.title(f"My Tempo - {os.path.basename(file_path)}")
+        self.window.geometry("900x700")
+        self.window.configure(bg='#1a1a1a')
+        
+        # 设置窗口图标和属性
+        self.window.transient(parent)
+        self.window.grab_set()
+        
+        # 居中显示窗口
+        self.center_window()
+        
+        # 创建界面
+        self.create_interface()
+        
+        # 加载文档内容
+        self.load_document()
+        
+    def center_window(self) -> None:
+        """将窗口居中显示"""
+        self.window.update_idletasks()
+        width = self.window.winfo_width()
+        height = self.window.winfo_height()
+        x = (self.window.winfo_screenwidth() // 2) - (width // 2)
+        y = (self.window.winfo_screenheight() // 2) - (height // 2)
+        self.window.geometry(f'{width}x{height}+{x}+{y}')
+        
+    def create_interface(self) -> None:
+        """创建文档查看界面"""
+        # 标题栏
+        title_frame = tk.Frame(self.window, bg='#2d2d2d', height=50)
+        title_frame.pack(fill='x', padx=0, pady=0)
+        title_frame.pack_propagate(False)
+        
+        # 文件名标签
+        file_name = os.path.basename(self.file_path)
+        title_label = tk.Label(
+            title_frame,
+            text=file_name,
+            font=('Inter', 14, 'bold'),
+            fg='#ffffff',
+            bg='#2d2d2d'
+        )
+        title_label.pack(side='left', padx=20, pady=15)
+        
+        # 关闭按钮
+        close_button = tk.Button(
+            title_frame,
+            text="✕",
+            font=('Inter', 12, 'bold'),
+            fg='#ffffff',
+            bg='#2d2d2d',
+            border=0,
+            cursor='hand2',
+            command=self.close_window
+        )
+        close_button.pack(side='right', padx=20, pady=15)
+        
+        # 文档内容区域
+        content_frame = tk.Frame(self.window, bg='#1a1a1a')
+        content_frame.pack(expand=True, fill='both', padx=20, pady=(0, 20))
+        
+        # 创建文本框和滚动条
+        self.text_widget = tk.Text(
+            content_frame,
+            bg='#1a1a1a',
+            fg='#ffffff',
+            font=('Noto Sans SC', 11),
+            wrap='word',
+            padx=20,
+            pady=20,
+            border=0,
+            insertbackground='#ffffff',
+            selectbackground='#404040',
+            selectforeground='#ffffff'
+        )
+        
+        # 滚动条
+        scrollbar = tk.Scrollbar(content_frame, command=self.text_widget.yview)
+        self.text_widget.config(yscrollcommand=scrollbar.set)
+        
+        # 布局
+        scrollbar.pack(side='right', fill='y')
+        self.text_widget.pack(side='left', expand=True, fill='both')
+        
+        # 绑定键盘事件
+        self.window.bind('<Escape>', lambda e: self.close_window())
+        self.window.bind('<Control-w>', lambda e: self.close_window())
+        
+    def load_document(self) -> None:
+        """加载并显示文档内容"""
+        try:
+            with open(self.file_path, 'r', encoding='utf-8') as file:
+                content = file.read()
+                self.text_widget.insert('1.0', content)
+                self.text_widget.config(state='disabled')  # 设为只读
+        except UnicodeDecodeError:
+            # 尝试其他编码
+            try:
+                with open(self.file_path, 'r', encoding='gbk') as file:
+                    content = file.read()
+                    self.text_widget.insert('1.0', content)
+                    self.text_widget.config(state='disabled')
+            except Exception as e:
+                error_msg = f"无法读取文件: {str(e)}"
+                self.text_widget.insert('1.0', error_msg)
+                self.text_widget.config(state='disabled')
+        except Exception as e:
+            error_msg = f"加载文档时出错: {str(e)}"
+            self.text_widget.insert('1.0', error_msg)
+            self.text_widget.config(state='disabled')
+            
+    def close_window(self) -> None:
+        """关闭窗口"""
+        self.window.destroy()
 
 class MyTempoApp:
     def __init__(self) -> None:
@@ -351,8 +473,15 @@ class MyTempoApp:
                 )
         
         if valid_files:
-            # TODO: 处理有效的Markdown文件
-            pass
+            # 处理有效的Markdown文件
+            for file_path in valid_files:
+                try:
+                    DocumentViewer(self.root, file_path)
+                except Exception as e:
+                    messagebox.showerror(
+                        "打开文件失败",
+                        f"无法打开文件 {os.path.basename(file_path)}:\n{str(e)}"
+                    )
             
     def run(self) -> None:
         """运行应用程序"""
