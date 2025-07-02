@@ -123,7 +123,7 @@ class LoadingWindow:
 class DocumentViewer:
     """文档查看器类"""
     # 版本号
-    VERSION = "0.2.2"  # 优化了中英文字体显示，英文使用 Inter 字体，中文使用 Noto Sans SC 字体
+    VERSION = "0.2.3"  # 优化了文档加载后的焦点处理，确保键盘快捷键可以立即使用
     
     # 支持的字体大小
     FONT_SIZES = [10, 11, 12, 14, 16, 18, 20, 22, 24, 28, 32, 36, 48, 60, 72]
@@ -223,9 +223,10 @@ class DocumentViewer:
             # 更新窗口标题
             self.update_window_title()
             
-            # 设置窗口在最前面显示
+            # 设置窗口在最前面显示并将焦点设置到文本区域
             self.window.lift()
             self.window.focus_force()
+            self.text_widget.focus_set()  # 将焦点设置到文本区域
             
         except Exception as e:
             messagebox.showerror("打开文件失败", f"无法打开文件 {os.path.basename(self.file_path)}:\n{str(e)}")
