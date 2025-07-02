@@ -1,6 +1,6 @@
 import os
 from ctypes import windll
-from typing import Tuple, List
+from typing import Tuple, List, Callable, Optional
 
 def add_font_resource(font_path: str) -> int:
     """在Windows中注册字体文件
@@ -13,8 +13,11 @@ def add_font_resource(font_path: str) -> int:
     """
     return windll.gdi32.AddFontResourceW(font_path)
 
-def load_fonts() -> bool:
+def load_fonts(progress_callback: Optional[Callable[[int, int, str], None]] = None) -> bool:
     """加载fonts文件夹中的字体文件
+    
+    Args:
+        progress_callback: 进度回调函数，参数为(当前进度, 总数, 当前字体名)
     
     Returns:
         bool: 是否成功加载至少一个字体
@@ -40,12 +43,18 @@ def load_fonts() -> bool:
         return False
     
     # 注册字体
+    total_fonts = len(font_files)
     loaded_count = 0
-    for font_path, filename in font_files:
+    
+    for index, (font_path, filename) in enumerate(font_files, 1):
         try:
             if add_font_resource(font_path):
-                print(f"✓ 加载{os.path.basename(os.path.dirname(font_path))}字体: {filename}")
+                font_type = "Inter" if "Inter" in font_path else "NotoSansSC" if "NotoSansSC" in font_path else "static"
+                print(f"✓ 加载{font_type}字体: {filename}")
                 loaded_count += 1
+                
+                if progress_callback:
+                    progress_callback(index, total_fonts, filename)
             else:
                 print(f"✗ 加载失败: {filename}")
         except Exception as e:

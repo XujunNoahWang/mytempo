@@ -2,23 +2,140 @@ import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
 import tkinterdnd2 as tkdnd
 import os
+import time
 from typing import List, Tuple, Optional
 from font_loader import load_fonts
 
-__version__ = '0.1.0'
+__version__ = '0.1.1'
+
+class LoadingWindow:
+    def __init__(self) -> None:
+        self.root = tk.Tk()
+        self.root.withdraw()  # 先隐藏窗口
+        self.root.title("Loading Fonts")
+        
+        # 设置窗口大小和位置
+        window_width = 400
+        window_height = 150
+        screen_width = self.root.winfo_screenwidth()
+        screen_height = self.root.winfo_screenheight()
+        x = (screen_width - window_width) // 2
+        y = (screen_height - window_height) // 2
+        self.root.geometry(f"{window_width}x{window_height}+{x}+{y}")
+        
+        # 设置窗口样式
+        self.root.configure(bg='#ffffff')
+        self.root.overrideredirect(True)  # 移除窗口装饰
+        
+        # 创建一个带阴影的框架
+        self.frame = tk.Frame(
+            self.root,
+            bg='#ffffff',
+            highlightbackground='#e5e5e7',
+            highlightthickness=1
+        )
+        self.frame.place(relx=0.5, rely=0.5, anchor='center', relwidth=0.9, relheight=0.8)
+        
+        # 加载提示文本
+        self.loading_label = tk.Label(
+            self.frame,
+            text="正在加载字体...",
+            font=('Arial', 14, 'bold'),
+            bg='#ffffff',
+            fg='#1d1d1f'
+        )
+        self.loading_label.pack(pady=(20, 10))
+        
+        # 进度条
+        style = ttk.Style()
+        style.configure(
+            "Custom.Horizontal.TProgressbar",
+            troughcolor='#f5f5f7',
+            background='#007AFF',
+            thickness=6
+        )
+        
+        self.progress_var = tk.DoubleVar()
+        self.progress_bar = ttk.Progressbar(
+            self.frame,
+            style="Custom.Horizontal.TProgressbar",
+            variable=self.progress_var,
+            maximum=100,
+            length=300,
+            mode='determinate'
+        )
+        self.progress_bar.pack(pady=5)
+        
+        # 当前加载的字体名称
+        self.font_label = tk.Label(
+            self.frame,
+            text="准备加载...",
+            font=('Arial', 10),
+            bg='#ffffff',
+            fg='#86868b'
+        )
+        self.font_label.pack(pady=5)
+        
+        self.start_time = time.time()
+        self.root.update()
+        self.root.deiconify()  # 显示窗口
+        
+    def update_progress(self, current: int, total: int, font_name: str) -> None:
+        """更新加载进度
+        
+        Args:
+            current: 当前进度
+            total: 总数
+            font_name: 当前字体名称
+        """
+        progress = (current / total) * 100
+        self.progress_var.set(progress)
+        self.font_label.config(text=f"Loading: {font_name}")
+        self.root.update()
+        
+    def ensure_minimum_time(self) -> None:
+        """确保加载窗口至少显示指定的最小时间"""
+        elapsed_time = time.time() - self.start_time
+        min_display_time = 1.0  # 最小显示时间（秒）
+        
+        if elapsed_time < min_display_time:
+            remaining = min_display_time - elapsed_time
+            time.sleep(remaining)
+            
+        # 在关闭前确保进度条显示100%
+        self.progress_var.set(100)
+        self.font_label.config(text="加载完成")
+        self.root.update()
+        time.sleep(0.2)  # 短暂显示完成状态
 
 class MyTempoApp:
     def __init__(self) -> None:
+        # 显示加载窗口
+        loading_window = LoadingWindow()
+        
+        # 预先创建主窗口但不显示
         self.root = tkdnd.Tk()
+        self.root.withdraw()
         self.root.title("My Tempo")
         self.root.geometry("600x450")
         self.root.configure(bg='#f5f5f7')
         
-        load_fonts()
+        # 加载字体
+        load_fonts(loading_window.update_progress)
+        
+        # 确保最小显示时间
+        loading_window.ensure_minimum_time()
+        
+        # 设置主窗口位置（在显示之前）
         self.center_window()
         self.setup_styles()
         self.create_upload_interface()
         self.setup_drag_drop()
+        
+        # 关闭加载窗口并显示主窗口
+        self.root.update()
+        loading_window.root.destroy()
+        self.root.deiconify()
         
     def center_window(self) -> None:
         """将窗口居中显示"""
