@@ -123,16 +123,22 @@ class LoadingWindow:
 class DocumentViewer:
     """文档查看器类"""
     # 版本号
-    VERSION = "0.1.7"  # 修复了键盘事件处理，优化了字体大小调整的用户体验
+    VERSION = "0.1.8"  # 添加了电影字幕般的平滑滚动效果
     
     # 支持的字体大小
     FONT_SIZES = [10, 11, 12, 14, 16, 18, 20, 22, 24, 28, 32, 36, 48, 60, 72]
     DEFAULT_FONT_SIZE = 24
 
+    # 滚动相关配置
+    SCROLL_SPEED = 0.001  # 基础滚动速度
+    SCROLL_INTERVAL = 50  # 滚动更新间隔（毫秒）
+    
     def __init__(self, parent: tk.Tk, file_path: str) -> None:
         self.parent = parent
         self.file_path = file_path
         self.current_font_size = self.DEFAULT_FONT_SIZE
+        self.is_scrolling = False  # 是否正在滚动
+        self.scroll_id = None  # 滚动定时器ID
         
         # 隐藏主窗口
         self.parent.withdraw()
@@ -325,7 +331,8 @@ class DocumentViewer:
         
         # 文本框级别的导航键
         self.text_widget.bind('<Up>', self.scroll_up)
-        self.text_widget.bind('<Down>', self.scroll_down)
+        self.text_widget.bind('<Down>', self.start_smooth_scroll)  # 按下时开始滚动
+        self.text_widget.bind('<KeyRelease-Down>', self.stop_smooth_scroll)  # 释放时停止滚动
         self.text_widget.bind('<Prior>', self.page_up)  # Page Up
         self.text_widget.bind('<Next>', self.page_down)  # Page Down
         self.text_widget.bind('<Home>', self.go_to_start)  # Home
@@ -361,8 +368,38 @@ class DocumentViewer:
         self.text_widget.yview_moveto(1)
         return 'break'  # 阻止默认的光标移动行为
 
+    def start_smooth_scroll(self, event: tk.Event = None) -> str:
+        """开始平滑滚动"""
+        if not self.is_scrolling:
+            self.is_scrolling = True
+            self.smooth_scroll()
+        return 'break'
+
+    def stop_smooth_scroll(self, event: tk.Event = None) -> str:
+        """停止平滑滚动"""
+        self.is_scrolling = False
+        if self.scroll_id:
+            self.window.after_cancel(self.scroll_id)
+            self.scroll_id = None
+        return 'break'
+
+    def smooth_scroll(self) -> None:
+        """执行平滑滚动"""
+        if self.is_scrolling:
+            # 获取当前滚动位置
+            current_pos = self.text_widget.yview()[0]
+            
+            # 如果还没到底部，继续滚动
+            if current_pos < 1.0:
+                self.text_widget.yview_moveto(current_pos + self.SCROLL_SPEED)
+                self.scroll_id = self.window.after(self.SCROLL_INTERVAL, self.smooth_scroll)
+            else:
+                self.stop_smooth_scroll()
+
     def close_window(self) -> None:
         """关闭窗口并显示主窗口"""
+        # 确保停止所有滚动
+        self.stop_smooth_scroll()
         self.window.destroy()
         # 重新显示主窗口
         self.parent.deiconify()
