@@ -6,17 +6,21 @@ import time
 from typing import List, Tuple, Optional
 from font_loader import load_fonts
 
-__version__ = '0.1.4'
+__version__ = '0.1.5'
 
 class LoadingWindow:
-    def __init__(self) -> None:
-        self.root = tk.Tk()
-        self.root.withdraw()  # Hide window initially
-        self.root.title("Loading Fonts")
+    def __init__(self, parent: Optional[tk.Tk] = None, title: str = "Loading") -> None:
+        if parent:
+            self.root = tk.Toplevel(parent)
+        else:
+            self.root = tk.Tk()
+            
+        self.root.withdraw()  # Always hide initially
+        self.root.title(title)
         
         # Set window size and position
         window_width = 400
-        window_height = 150
+        window_height = 180  # 增加高度以确保文本完全显示
         screen_width = self.root.winfo_screenwidth()
         screen_height = self.root.winfo_screenheight()
         x = (screen_width - window_width) // 2
@@ -34,17 +38,17 @@ class LoadingWindow:
             highlightbackground='#e5e5e7',
             highlightthickness=1
         )
-        self.frame.place(relx=0.5, rely=0.5, anchor='center', relwidth=0.9, relheight=0.8)
+        self.frame.place(relx=0.5, rely=0.5, anchor='center', relwidth=0.9, relheight=0.85)  # 增加frame高度比例
         
         # Loading text
         self.loading_label = tk.Label(
             self.frame,
-            text="Loading Fonts...",
-            font=('Arial', 14, 'bold'),
+            text=title + "...",
+            font=('Inter', 14, 'bold'),
             bg='#ffffff',
             fg='#1d1d1f'
         )
-        self.loading_label.pack(pady=(20, 10))
+        self.loading_label.pack(pady=(25, 15))  # 调整上下间距
         
         # Progress bar
         style = ttk.Style()
@@ -64,33 +68,34 @@ class LoadingWindow:
             length=300,
             mode='determinate'
         )
-        self.progress_bar.pack(pady=5)
+        self.progress_bar.pack(pady=(0, 10))  # 调整上下间距
         
-        # Current loading font name
-        self.font_label = tk.Label(
+        # Current loading item name
+        self.item_label = tk.Label(
             self.frame,
             text="Preparing...",
-            font=('Arial', 10),
+            font=('Inter', 10),
             bg='#ffffff',
-            fg='#86868b'
+            fg='#86868b',
+            wraplength=280  # 添加文本自动换行
         )
-        self.font_label.pack(pady=5)
+        self.item_label.pack(pady=(0, 20))  # 调整上下间距
         
         self.start_time = time.time()
         self.root.update()
         self.root.deiconify()  # Show window
         
-    def update_progress(self, current: int, total: int, font_name: str) -> None:
+    def update_progress(self, current: int, total: int, item_name: str) -> None:
         """Update loading progress
         
         Args:
             current: Current progress
             total: Total items
-            font_name: Current font name
+            item_name: Current item name
         """
         progress = (current / total) * 100
         self.progress_var.set(progress)
-        self.font_label.config(text=f"Loading: {font_name}")
+        self.item_label.config(text=f"Loading: {item_name}")
         self.root.update()
         
     def ensure_minimum_time(self) -> None:
@@ -104,9 +109,13 @@ class LoadingWindow:
             
         # Show 100% completion before closing
         self.progress_var.set(100)
-        self.font_label.config(text="Loading Complete")
+        self.item_label.config(text="Loading Complete")
         self.root.update()
         time.sleep(0.2)  # Brief display of completion status
+        
+    def destroy(self) -> None:
+        """Destroy the loading window"""
+        self.root.destroy()
 
 class DocumentViewer:
     def __init__(self, parent: tk.Tk, file_path: str) -> None:
@@ -128,11 +137,9 @@ class DocumentViewer:
         # 居中显示窗口
         self.center_window()
         
-        # 创建界面
-        self.create_interface()
-        
-        # 加载文档内容
-        self.load_document()
+        # 创建并显示加载界面
+        self.loading_window = LoadingWindow(self.window, "Loading Document")
+        self.window.after(100, self.load_document)
         
     def center_window(self) -> None:
         """将窗口居中显示"""
@@ -142,6 +149,71 @@ class DocumentViewer:
         x = (self.window.winfo_screenwidth() // 2) - (width // 2)
         y = (self.window.winfo_screenheight() // 2) - (height // 2)
         self.window.geometry(f'{width}x{height}+{x}+{y}')
+        
+    def load_document(self) -> None:
+        """加载文档内容"""
+        try:
+            # 更新加载状态
+            self.loading_window.item_label.config(text=f"Reading: {os.path.basename(self.file_path)}")
+            self.loading_window.progress_var.set(30)
+            self.loading_window.root.update()
+            
+            # 读取文件内容
+            content = self.read_file_content()
+            
+            # 更新加载状态
+            self.loading_window.item_label.config(text="Preparing display")
+            self.loading_window.progress_var.set(60)
+            self.loading_window.root.update()
+            
+            # 创建界面
+            self.create_interface()
+            
+            # 更新加载状态
+            self.loading_window.item_label.config(text="Rendering content")
+            self.loading_window.progress_var.set(90)
+            self.loading_window.root.update()
+            
+            # 显示内容
+            self.display_content(content)
+            
+            # 完成加载
+            self.loading_window.progress_var.set(100)
+            self.loading_window.item_label.config(text="Complete")
+            self.loading_window.root.update()
+            time.sleep(0.2)
+            
+            # 销毁加载窗口
+            self.loading_window.destroy()
+            
+        except Exception as e:
+            self.loading_window.destroy()
+            self.show_error(str(e))
+        
+    def read_file_content(self) -> str:
+        """读取文件内容"""
+        try:
+            with open(self.file_path, 'r', encoding='utf-8') as file:
+                return file.read()
+        except UnicodeDecodeError:
+            # 尝试其他编码
+            try:
+                with open(self.file_path, 'r', encoding='gbk') as file:
+                    return file.read()
+            except Exception as e:
+                raise Exception(f"无法读取文件: {str(e)}")
+        except Exception as e:
+            raise Exception(f"加载文档时出错: {str(e)}")
+            
+    def display_content(self, content: str) -> None:
+        """显示文档内容"""
+        self.text_widget.insert('1.0', content)
+        self.text_widget.config(state='disabled')  # 设为只读
+        
+    def show_error(self, error_msg: str) -> None:
+        """显示错误信息"""
+        self.text_widget.insert('1.0', f"错误: {error_msg}")
+        self.text_widget.config(state='disabled')
         
     def create_interface(self) -> None:
         """创建文档查看界面"""
@@ -182,29 +254,6 @@ class DocumentViewer:
         self.text_widget.bind('<Home>', self.go_to_start)  # Home
         self.text_widget.bind('<End>', self.go_to_end)  # End
         
-    def load_document(self) -> None:
-        """加载并显示文档内容"""
-        try:
-            with open(self.file_path, 'r', encoding='utf-8') as file:
-                content = file.read()
-                self.text_widget.insert('1.0', content)
-                self.text_widget.config(state='disabled')  # 设为只读
-        except UnicodeDecodeError:
-            # 尝试其他编码
-            try:
-                with open(self.file_path, 'r', encoding='gbk') as file:
-                    content = file.read()
-                    self.text_widget.insert('1.0', content)
-                    self.text_widget.config(state='disabled')
-            except Exception as e:
-                error_msg = f"无法读取文件: {str(e)}"
-                self.text_widget.insert('1.0', error_msg)
-                self.text_widget.config(state='disabled')
-        except Exception as e:
-            error_msg = f"加载文档时出错: {str(e)}"
-            self.text_widget.insert('1.0', error_msg)
-            self.text_widget.config(state='disabled')
-            
     def scroll_up(self, event: tk.Event) -> str:
         """向上滚动"""
         self.text_widget.yview_scroll(-1, "units")
@@ -243,15 +292,15 @@ class DocumentViewer:
 
 class MyTempoApp:
     def __init__(self) -> None:
-        # Show loading window
-        loading_window = LoadingWindow()
-        
-        # Pre-create main window but don't show
+        # Create main window first but don't show it
         self.root = tkdnd.Tk()
         self.root.withdraw()
         self.root.title("My Tempo")
         self.root.geometry("600x450")
         self.root.configure(bg='#f5f5f7')
+        
+        # Show loading window
+        loading_window = LoadingWindow(self.root, "Loading Fonts")
         
         # Load fonts
         load_fonts(loading_window.update_progress)
@@ -266,8 +315,7 @@ class MyTempoApp:
         self.setup_drag_drop()
         
         # Close loading window and show main window
-        self.root.update()
-        loading_window.root.destroy()
+        loading_window.destroy()
         self.root.deiconify()
         
     def center_window(self) -> None:
