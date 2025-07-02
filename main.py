@@ -123,7 +123,7 @@ class LoadingWindow:
 class DocumentViewer:
     """文档查看器类"""
     # 版本号
-    VERSION = "0.2.1"  # 修复了字体大小调整时的位置跳转问题，优化了键盘事件绑定
+    VERSION = "0.2.2"  # 优化了中英文字体显示，英文使用 Inter 字体，中文使用 Noto Sans SC 字体
     
     # 支持的字体大小
     FONT_SIZES = [10, 11, 12, 14, 16, 18, 20, 22, 24, 28, 32, 36, 48, 60, 72]
@@ -134,24 +134,32 @@ class DocumentViewer:
     SCROLL_SPEEDS = [1, 2, 3, 4, 5]  # 速度倍率列表，从1x到5x
     DEFAULT_SPEED_INDEX = 0  # 默认使用1倍速
     SCROLL_INTERVAL = 16  # 滚动更新间隔（毫秒），约60fps以实现最佳平滑效果
-    
+
+    # 透明度相关配置
+    OPACITY_LEVELS = [1.0, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1]  # 从不透明到透明
+    DEFAULT_OPACITY_INDEX = 5  # 默认使用50%不透明度
+
     def __init__(self, parent: tk.Tk, file_path: str) -> None:
         """初始化文档查看器"""
         self.parent = parent
         self.file_path = file_path
         self.current_font_size = self.DEFAULT_FONT_SIZE
         self.current_speed_index = self.DEFAULT_SPEED_INDEX  # 当前速度倍率索引
+        self.current_opacity_index = self.DEFAULT_OPACITY_INDEX  # 当前透明度索引
         self.is_scrolling = False  # 是否正在滚动
         self.scroll_id = None  # 滚动定时器ID
         
         # 隐藏主窗口
         self.parent.withdraw()
-        
+
         # 创建文档查看窗口
         self.window = tk.Toplevel(parent)
-        self.update_window_title()  # 使用新方法更新标题
+        self.window.title(f"My Tempo - {os.path.basename(self.file_path)}")
         self.window.geometry("900x700")
         self.window.configure(bg='#1a1a1a')
+        
+        # 设置初始透明度
+        self.window.attributes('-alpha', self.OPACITY_LEVELS[self.current_opacity_index])
         
         # 设置窗口关闭事件
         self.window.protocol("WM_DELETE_WINDOW", self.close_window)
@@ -163,10 +171,103 @@ class DocumentViewer:
         self.loading_window = LoadingWindow(self.window, "Loading Document")
         self.window.after(100, self.load_document)
 
+    def load_document(self) -> None:
+        """加载文档内容"""
+        try:
+            # 更新加载状态
+            self.loading_window.update_progress(1, 4, "Creating text widget...")
+            
+            # 创建文本框
+            self.create_text_widget()
+            
+            # 更新加载状态
+            self.loading_window.update_progress(2, 4, "Loading content...")
+            
+            # 加载文件内容
+            with open(self.file_path, 'r', encoding='utf-8') as file:
+                content = file.read()
+            
+            # 更新加载状态
+            self.loading_window.update_progress(3, 4, "Rendering content...")
+            
+            # 设置文本内容
+            self.text_widget.config(state=tk.NORMAL)  # 临时启用编辑
+            self.text_widget.delete('1.0', tk.END)
+            
+            # 分析文本并应用适当的字体
+            pos = '1.0'
+            for char in content:
+                if '\u4e00' <= char <= '\u9fff':  # 中文字符范围
+                    self.text_widget.insert(pos, char, 'zh')
+                else:
+                    self.text_widget.insert(pos, char, 'en')
+                pos = self.text_widget.index(f"{pos}+1c")
+            
+            self.text_widget.config(state=tk.DISABLED)  # 重新禁用编辑
+            
+            # 绑定键盘事件
+            self.bind_keyboard_events()
+            
+            # 确保透明度设置正确
+            self.window.attributes('-alpha', self.OPACITY_LEVELS[self.current_opacity_index])
+            
+            # 更新加载状态
+            self.loading_window.update_progress(4, 4, "Complete")
+            
+            # 确保最小显示时间
+            self.loading_window.ensure_minimum_time()
+            
+            # 销毁加载窗口
+            self.loading_window.destroy()
+            
+            # 更新窗口标题
+            self.update_window_title()
+            
+            # 设置窗口在最前面显示
+            self.window.lift()
+            self.window.focus_force()
+            
+        except Exception as e:
+            messagebox.showerror("打开文件失败", f"无法打开文件 {os.path.basename(self.file_path)}:\n{str(e)}")
+            self.close_window()
+
+    def create_text_widget(self) -> None:
+        """创建文本框"""
+        # 创建文本框
+        self.text_widget = tk.Text(
+            self.window,
+            font=('Noto Sans SC', self.current_font_size),  # 默认使用中文字体
+            bg='#1a1a1a',  # 深色背景
+            fg='#ffffff',  # 白色文字
+            insertbackground='#ffffff',  # 白色光标
+            wrap=tk.WORD,  # 按词换行
+            padx=40,  # 左右内边距
+            pady=40,  # 上下内边距
+            spacing1=8,  # 段落间距
+            cursor='arrow'  # 使用箭头光标
+        )
+        self.text_widget.pack(expand=True, fill='both')
+        
+        # 配置中文字体标签
+        self.text_widget.tag_configure('zh', font=('Noto Sans SC', self.current_font_size))
+        # 配置英文字体标签
+        self.text_widget.tag_configure('en', font=('Inter', self.current_font_size))
+        
+        # 禁用文本编辑
+        self.text_widget.config(state=tk.DISABLED)
+        
+        # 创建滚动条
+        scrollbar = ttk.Scrollbar(self.window, orient=tk.VERTICAL, command=self.text_widget.yview)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        
+        # 配置文本框的滚动
+        self.text_widget.configure(yscrollcommand=scrollbar.set)
+
     def update_window_title(self) -> None:
-        """更新窗口标题，包含文件名、字体大小和滚动速度信息"""
+        """更新窗口标题，包含文件名、字体大小、滚动速度和透明度信息"""
         speed_multiplier = self.SCROLL_SPEEDS[self.current_speed_index]
-        title = f"My Tempo - {os.path.basename(self.file_path)} - Size: {self.current_font_size}px (←→) - Speed: {speed_multiplier}x (+-)"
+        opacity_percentage = int(self.OPACITY_LEVELS[self.current_opacity_index] * 100)
+        title = f"My Tempo - {os.path.basename(self.file_path)} - Size: {self.current_font_size}px (←→) - Speed: {speed_multiplier}x (+-) - Opacity: {opacity_percentage}% (*/)"
         self.window.title(title)
 
     def handle_left_key(self, event: tk.Event) -> str:
@@ -193,26 +294,20 @@ class DocumentViewer:
 
     def update_font_size(self) -> None:
         """更新字体大小"""
-        # 保存当前滚动位置的相对比例
-        first, last = self.text_widget.yview()
-        relative_position = first
-        
-        # 临时启用文本框以更新字体
-        self.text_widget.config(state='normal')
-        content = self.text_widget.get('1.0', 'end-1c')
-        self.text_widget.delete('1.0', 'end')
-        self.text_widget.config(font=('Noto Sans SC', self.current_font_size))
-        self.text_widget.insert('1.0', content)
-        self.text_widget.config(state='disabled')
-        
-        # 等待一下以确保文本框完成渲染
-        self.window.update_idletasks()
-        
-        # 恢复到相同的相对位置
-        self.text_widget.yview_moveto(relative_position)
-        
-        # 更新标题栏显示
-        self.update_window_title()  # 使用统一的标题更新方法
+        if hasattr(self, 'text_widget'):
+            # 保存当前滚动位置
+            current_position = self.text_widget.yview()
+            
+            # 更新字体大小
+            self.text_widget.configure(font=('Noto Sans SC', self.current_font_size))
+            self.text_widget.tag_configure('zh', font=('Noto Sans SC', self.current_font_size))
+            self.text_widget.tag_configure('en', font=('Inter', self.current_font_size))
+            
+            # 恢复滚动位置
+            self.text_widget.yview_moveto(current_position[0])
+            
+            # 更新窗口标题
+            self.update_window_title()
 
     def center_window(self) -> None:
         """将窗口居中显示"""
@@ -223,112 +318,6 @@ class DocumentViewer:
         y = (self.window.winfo_screenheight() // 2) - (height // 2)
         self.window.geometry(f'{width}x{height}+{x}+{y}')
         
-    def load_document(self) -> None:
-        """加载文档内容"""
-        try:
-            # 更新加载状态
-            self.loading_window.item_label.config(text=f"Reading: {os.path.basename(self.file_path)}")
-            self.loading_window.progress_var.set(30)
-            self.loading_window.root.update()
-            
-            # 读取文件内容
-            content = self.read_file_content()
-            
-            # 更新加载状态
-            self.loading_window.item_label.config(text="Preparing display")
-            self.loading_window.progress_var.set(60)
-            self.loading_window.root.update()
-            
-            # 创建界面
-            self.create_interface()
-            
-            # 更新加载状态
-            self.loading_window.item_label.config(text="Rendering content")
-            self.loading_window.progress_var.set(90)
-            self.loading_window.root.update()
-            
-            # 显示内容
-            self.display_content(content)
-            
-            # 完成加载
-            self.loading_window.progress_var.set(100)
-            self.loading_window.item_label.config(text="Complete")
-            self.loading_window.root.update()
-            time.sleep(0.2)
-            
-            # 销毁加载窗口
-            self.loading_window.destroy()
-            
-            # 确保文档查看窗口和文本框获得焦点
-            self.window.focus_force()
-            self.text_widget.focus_set()
-            
-        except Exception as e:
-            self.loading_window.destroy()
-            self.show_error(str(e))
-            # 发生错误时也确保窗口和文本框获得焦点
-            self.window.focus_force()
-            if hasattr(self, 'text_widget'):
-                self.text_widget.focus_set()
-        
-    def read_file_content(self) -> str:
-        """读取文件内容"""
-        try:
-            with open(self.file_path, 'r', encoding='utf-8') as file:
-                return file.read()
-        except UnicodeDecodeError:
-            # 尝试其他编码
-            try:
-                with open(self.file_path, 'r', encoding='gbk') as file:
-                    return file.read()
-            except Exception as e:
-                raise Exception(f"无法读取文件: {str(e)}")
-        except Exception as e:
-            raise Exception(f"加载文档时出错: {str(e)}")
-            
-    def display_content(self, content: str) -> None:
-        """显示文档内容"""
-        # 临时启用文本框以插入内容
-        self.text_widget.config(state='normal')
-        self.text_widget.delete('1.0', 'end')
-        self.text_widget.insert('1.0', content)
-        # 重新禁用文本框
-        self.text_widget.config(state='disabled')
-        
-    def show_error(self, error_msg: str) -> None:
-        """显示错误信息"""
-        self.text_widget.insert('1.0', f"错误: {error_msg}")
-        self.text_widget.config(state='disabled')
-        
-    def create_interface(self) -> None:
-        """创建文档查看界面"""
-        # 文档内容区域 - 直接填满整个窗口
-        content_frame = tk.Frame(self.window, bg='#1a1a1a')
-        content_frame.pack(expand=True, fill='both', padx=20, pady=20)
-        
-        # 创建文本框 - 无滚动条
-        self.text_widget = tk.Text(
-            content_frame,
-            bg='#1a1a1a',
-            fg='#ffffff',
-            font=('Noto Sans SC', self.current_font_size),
-            wrap='word',
-            padx=20,
-            pady=20,
-            border=0,
-            insertbackground='#ffffff',
-            selectbackground='#404040',
-            selectforeground='#ffffff',
-            cursor='arrow',  # 使用箭头光标而不是文本光标
-            state='disabled'  # 设置为禁用状态，防止编辑
-        )
-        
-        # 布局 - 文本框填满整个区域
-        self.text_widget.pack(expand=True, fill='both')
-        
-        # 绑定键盘事件到文本框和窗口
-        self.bind_keyboard_events()
-
     def bind_keyboard_events(self) -> None:
         """绑定所有键盘事件"""
         # 禁用文本框的默认左右键绑定，并重新绑定为字体大小调整
@@ -342,6 +331,10 @@ class DocumentViewer:
         # 滚动速度调整
         self.window.bind('<plus>', self.increase_scroll_speed)  # +键
         self.window.bind('<minus>', self.decrease_scroll_speed)  # -键
+
+        # 透明度调整
+        self.window.bind('<asterisk>', self.increase_opacity)  # *键
+        self.window.bind('<slash>', self.decrease_opacity)     # /键
         
         # 文本框级别的导航键
         self.text_widget.bind('<Up>', self.scroll_up)
@@ -432,6 +425,22 @@ class DocumentViewer:
         """减小滚动速度"""
         if self.current_speed_index > 0:
             self.current_speed_index -= 1
+            self.update_window_title()
+        return 'break'
+
+    def increase_opacity(self, event: tk.Event = None) -> str:
+        """增加不透明度"""
+        if self.current_opacity_index > 0:
+            self.current_opacity_index -= 1
+            self.window.attributes('-alpha', self.OPACITY_LEVELS[self.current_opacity_index])
+            self.update_window_title()
+        return 'break'
+
+    def decrease_opacity(self, event: tk.Event = None) -> str:
+        """减小不透明度"""
+        if self.current_opacity_index < len(self.OPACITY_LEVELS) - 1:
+            self.current_opacity_index += 1
+            self.window.attributes('-alpha', self.OPACITY_LEVELS[self.current_opacity_index])
             self.update_window_title()
         return 'break'
 
