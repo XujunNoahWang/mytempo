@@ -123,7 +123,7 @@ class LoadingWindow:
 class DocumentViewer:
     """文档查看器类"""
     # 版本号
-    VERSION = "0.2.0"  # 添加了滚动速度调节功能（1x-5x），优化了标题栏显示
+    VERSION = "0.2.1"  # 修复了字体大小调整时的位置跳转问题，优化了键盘事件绑定
     
     # 支持的字体大小
     FONT_SIZES = [10, 11, 12, 14, 16, 18, 20, 22, 24, 28, 32, 36, 48, 60, 72]
@@ -162,10 +162,6 @@ class DocumentViewer:
         # 创建并显示加载界面
         self.loading_window = LoadingWindow(self.window, "Loading Document")
         self.window.after(100, self.load_document)
-        
-        # 绑定键盘事件
-        self.window.bind('<Left>', self.handle_left_key)
-        self.window.bind('<Right>', self.handle_right_key)
 
     def update_window_title(self) -> None:
         """更新窗口标题，包含文件名、字体大小和滚动速度信息"""
@@ -197,6 +193,10 @@ class DocumentViewer:
 
     def update_font_size(self) -> None:
         """更新字体大小"""
+        # 保存当前滚动位置的相对比例
+        first, last = self.text_widget.yview()
+        relative_position = first
+        
         # 临时启用文本框以更新字体
         self.text_widget.config(state='normal')
         content = self.text_widget.get('1.0', 'end-1c')
@@ -204,6 +204,12 @@ class DocumentViewer:
         self.text_widget.config(font=('Noto Sans SC', self.current_font_size))
         self.text_widget.insert('1.0', content)
         self.text_widget.config(state='disabled')
+        
+        # 等待一下以确保文本框完成渲染
+        self.window.update_idletasks()
+        
+        # 恢复到相同的相对位置
+        self.text_widget.yview_moveto(relative_position)
         
         # 更新标题栏显示
         self.update_window_title()  # 使用统一的标题更新方法
@@ -325,13 +331,13 @@ class DocumentViewer:
 
     def bind_keyboard_events(self) -> None:
         """绑定所有键盘事件"""
+        # 禁用文本框的默认左右键绑定，并重新绑定为字体大小调整
+        self.text_widget.bind('<Left>', self.handle_left_key)
+        self.text_widget.bind('<Right>', self.handle_right_key)
+        
         # 窗口级别的快捷键
         self.window.bind('<Escape>', lambda e: self.close_window())
         self.window.bind('<Control-w>', lambda e: self.close_window())
-        
-        # 字体大小调整绑定到窗口级别
-        self.window.bind('<Left>', self.handle_left_key)
-        self.window.bind('<Right>', self.handle_right_key)
         
         # 滚动速度调整
         self.window.bind('<plus>', self.increase_scroll_speed)  # +键
