@@ -123,14 +123,16 @@ class LoadingWindow:
 class DocumentViewer:
     """文档查看器类"""
     # 版本号
-    VERSION = "0.1.9"  # 优化了平滑滚动效果，移除了1像素的限制，使滚动更加流畅
+    VERSION = "0.2.0"  # 添加了滚动速度调节功能（1x-5x），优化了标题栏显示
     
     # 支持的字体大小
     FONT_SIZES = [10, 11, 12, 14, 16, 18, 20, 22, 24, 28, 32, 36, 48, 60, 72]
     DEFAULT_FONT_SIZE = 24
 
     # 滚动相关配置
-    SCROLL_SPEED = 0.0002  # 基础滚动速度，每次滚动移动窗口高度的 0.02%
+    BASE_SPEED = 0.0002  # 基础速度（1x）
+    SCROLL_SPEEDS = [1, 2, 3, 4, 5]  # 速度倍率列表，从1x到5x
+    DEFAULT_SPEED_INDEX = 0  # 默认使用1倍速
     SCROLL_INTERVAL = 16  # 滚动更新间隔（毫秒），约60fps以实现最佳平滑效果
     
     def __init__(self, parent: tk.Tk, file_path: str) -> None:
@@ -138,6 +140,7 @@ class DocumentViewer:
         self.parent = parent
         self.file_path = file_path
         self.current_font_size = self.DEFAULT_FONT_SIZE
+        self.current_speed_index = self.DEFAULT_SPEED_INDEX  # 当前速度倍率索引
         self.is_scrolling = False  # 是否正在滚动
         self.scroll_id = None  # 滚动定时器ID
         
@@ -165,8 +168,9 @@ class DocumentViewer:
         self.window.bind('<Right>', self.handle_right_key)
 
     def update_window_title(self) -> None:
-        """更新窗口标题，包含文件名和字体大小信息"""
-        title = f"My Tempo - {os.path.basename(self.file_path)} - Size: {self.current_font_size}px (← → to adjust)"
+        """更新窗口标题，包含文件名、字体大小和滚动速度信息"""
+        speed_multiplier = self.SCROLL_SPEEDS[self.current_speed_index]
+        title = f"My Tempo - {os.path.basename(self.file_path)} - Size: {self.current_font_size}px (←→) - Speed: {speed_multiplier}x (+-)"
         self.window.title(title)
 
     def handle_left_key(self, event: tk.Event) -> str:
@@ -202,8 +206,7 @@ class DocumentViewer:
         self.text_widget.config(state='disabled')
         
         # 更新标题栏显示
-        title = f'MyTempo - Font Size: {self.current_font_size}px (← → to adjust)'
-        self.window.title(title)
+        self.update_window_title()  # 使用统一的标题更新方法
 
     def center_window(self) -> None:
         """将窗口居中显示"""
@@ -330,6 +333,10 @@ class DocumentViewer:
         self.window.bind('<Left>', self.handle_left_key)
         self.window.bind('<Right>', self.handle_right_key)
         
+        # 滚动速度调整
+        self.window.bind('<plus>', self.increase_scroll_speed)  # +键
+        self.window.bind('<minus>', self.decrease_scroll_speed)  # -键
+        
         # 文本框级别的导航键
         self.text_widget.bind('<Up>', self.scroll_up)
         self.text_widget.bind('<Down>', self.start_smooth_scroll)  # 按下时开始滚动
@@ -392,8 +399,10 @@ class DocumentViewer:
             
             # 如果还没到底部，继续滚动
             if current_pos < 1.0:
-                # 直接使用设定的滚动速度
-                self.text_widget.yview_moveto(current_pos + DocumentViewer.SCROLL_SPEED)
+                # 使用当前速度倍率计算实际滚动速度
+                speed_multiplier = self.SCROLL_SPEEDS[self.current_speed_index]
+                current_speed = self.BASE_SPEED * speed_multiplier
+                self.text_widget.yview_moveto(current_pos + current_speed)
                 self.scroll_id = self.window.after(self.SCROLL_INTERVAL, self.smooth_scroll)
             else:
                 self.stop_smooth_scroll()
@@ -405,6 +414,20 @@ class DocumentViewer:
         self.window.destroy()
         # 重新显示主窗口
         self.parent.deiconify()
+
+    def increase_scroll_speed(self, event: tk.Event = None) -> str:
+        """增加滚动速度"""
+        if self.current_speed_index < len(self.SCROLL_SPEEDS) - 1:
+            self.current_speed_index += 1
+            self.update_window_title()
+        return 'break'
+
+    def decrease_scroll_speed(self, event: tk.Event = None) -> str:
+        """减小滚动速度"""
+        if self.current_speed_index > 0:
+            self.current_speed_index -= 1
+            self.update_window_title()
+        return 'break'
 
 class MyTempoApp:
     def __init__(self) -> None:
