@@ -68,6 +68,16 @@ class TextDisplayWindow(ctk.CTkToplevel):
         )
         self.text_widget.pack(fill=tk.BOTH, expand=True)
         
+        # Create speed indicator label
+        self.speed_label = ctk.CTkLabel(
+            self,
+            text="Speed: 1.0x",
+            font=("Microsoft YaHei UI", 12),
+            text_color="white",
+            fg_color="black"
+        )
+        self.speed_label.place(relx=0.95, rely=0.02, anchor=tk.NE)
+        
         # Load and display file content
         with open(file_path, 'r', encoding='utf-8') as file:
             content = file.read()
@@ -78,12 +88,17 @@ class TextDisplayWindow(ctk.CTkToplevel):
         
         # Scrolling variables
         self.is_scrolling = False
-        self.scroll_speed = 0.0005  # Adjust this value to change scroll speed
+        self.base_scroll_speed = 0.0005  # Base scroll speed
+        self.speed_multiplier = 1.0  # Speed multiplier
         self.scroll_timer = None
         
         # Bind key events
         self.bind('<KeyPress-Down>', self.start_scroll)
         self.bind('<KeyRelease-Down>', self.stop_scroll)
+        self.bind('<KeyPress-plus>', self.increase_speed)
+        self.bind('<KeyPress-minus>', self.decrease_speed)
+        self.bind('<KeyPress-equal>', self.increase_speed)  # For users who don't need to press Shift
+        self.bind('<KeyPress-underscore>', self.decrease_speed)  # For users who use Shift+minus
         
         # Show window
         self.deiconify()
@@ -108,8 +123,19 @@ class TextDisplayWindow(ctk.CTkToplevel):
         if self.is_scrolling:
             current_position = self.text_widget.yview()[0]
             if current_position < 1.0:  # If not at the bottom
-                self.text_widget.yview_moveto(current_position + self.scroll_speed)
+                self.text_widget.yview_moveto(current_position + (self.base_scroll_speed * self.speed_multiplier))
                 self.scroll_timer = self.after(20, self.scroll_text)  # Update every 20ms
+
+    def increase_speed(self, event):
+        self.speed_multiplier = min(5.0, self.speed_multiplier + 0.1)  # Cap at 5x speed
+        self.update_speed_label()
+
+    def decrease_speed(self, event):
+        self.speed_multiplier = max(0.1, self.speed_multiplier - 0.1)  # Minimum 0.1x speed
+        self.update_speed_label()
+
+    def update_speed_label(self):
+        self.speed_label.configure(text=f"Speed: {self.speed_multiplier:.1f}x")
 
 if __name__ == "__main__":
     app = FileUploadWindow()
