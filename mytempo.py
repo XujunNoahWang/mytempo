@@ -11,21 +11,21 @@ class FileUploadWindow(ctk.CTk, TkinterDnD.DnDWrapper):
         super().__init__()
         self.TkdndVersion = TkinterDnD._require(self)
         
-        # 设置窗口
-        self.title("MyTempo - 文件上传")
+        # Set up window
+        self.title("MyTempo - File Upload")
         self.geometry("500x300")
         
-        # 创建拖放区域
+        # Create drop zone
         self.frame = ctk.CTkFrame(self, width=400, height=200)
         self.frame.place(relx=0.5, rely=0.5, anchor=tk.CENTER)
         
-        self.label = ctk.CTkLabel(self.frame, text="拖拽或点击选择MD文件", font=("Microsoft YaHei UI", 16))
+        self.label = ctk.CTkLabel(self.frame, text="Drag & Drop or Click to Select MD File", font=("Microsoft YaHei UI", 16))
         self.label.place(relx=0.5, rely=0.3, anchor=tk.CENTER)
         
-        self.button = ctk.CTkButton(self.frame, text="选择文件", command=self.open_file)
+        self.button = ctk.CTkButton(self.frame, text="Select File", command=self.open_file)
         self.button.place(relx=0.5, rely=0.7, anchor=tk.CENTER)
         
-        # 绑定拖放事件
+        # Bind drag and drop events
         self.drop_target_register(DND_FILES)
         self.dnd_bind('<<Drop>>', self.handle_drop)
 
@@ -36,65 +36,65 @@ class FileUploadWindow(ctk.CTk, TkinterDnD.DnDWrapper):
 
     def handle_drop(self, event):
         file_path = event.data
-        # 在Windows系统中，移除文件路径的大括号和引号
+        # Remove curly braces from file path on Windows
         file_path = file_path.strip('{}').strip('"')
         
         if file_path.lower().endswith('.md'):
             self.process_file(file_path)
         else:
-            messagebox.showerror("错误", "请选择MD文件")
+            messagebox.showerror("Error", "Please select a Markdown file")
 
     def process_file(self, file_path):
-        self.withdraw()  # 隐藏当前窗口
+        self.withdraw()  # Hide current window
         TextDisplayWindow(file_path)
 
 class TextDisplayWindow(ctk.CTkToplevel):
     def __init__(self, file_path):
         super().__init__()
         
-        # 设置窗口
-        self.title("MyTempo - 文本显示")
+        # Set up window
+        self.title("MyTempo - Text Display")
         self.geometry("700x600")
-        self.attributes('-alpha', 0.6)  # 设置透明度
-        self.configure(bg='black')  # 设置背景颜色为黑色
+        self.attributes('-alpha', 0.6)  # Set transparency
+        self.configure(bg='black')  # Set background color to black
         
-        # 创建文本显示区域
+        # Create text display area
         self.text_widget = ctk.CTkTextbox(
             self,
             font=("Microsoft YaHei UI", 24),
             text_color="white",
-            fg_color="black",  # 文本框背景色
+            fg_color="black",  # Text box background color
             border_width=0
         )
         self.text_widget.pack(fill=tk.BOTH, expand=True)
         
-        # 加载并显示文件内容
+        # Load and display file content
         with open(file_path, 'r', encoding='utf-8') as file:
             content = file.read()
             html_content = markdown.markdown(content)
             self.text_widget.insert('1.0', content)
         
-        self.text_widget.configure(state="disabled")  # 设置为只读
+        self.text_widget.configure(state="disabled")  # Set to read-only
         
-        # 滚动相关变量
+        # Scrolling variables
         self.is_scrolling = False
-        self.scroll_speed = 0.0005  # 调整这个值可以改变滚动速度
+        self.scroll_speed = 0.0005  # Adjust this value to change scroll speed
         self.scroll_timer = None
         
-        # 绑定按键事件
+        # Bind key events
         self.bind('<KeyPress-Down>', self.start_scroll)
         self.bind('<KeyRelease-Down>', self.stop_scroll)
         
-        # 显示窗口
+        # Show window
         self.deiconify()
         self.lift()
         self.focus_force()
         
-        # 允许调整窗口大小
+        # Allow window resizing
         self.resizable(True, True)
 
     def start_scroll(self, event):
-        if not self.is_scrolling:  # 只在第一次按下时启动滚动
+        if not self.is_scrolling:  # Only start scrolling on first press
             self.is_scrolling = True
             self.scroll_text()
 
@@ -107,9 +107,9 @@ class TextDisplayWindow(ctk.CTkToplevel):
     def scroll_text(self):
         if self.is_scrolling:
             current_position = self.text_widget.yview()[0]
-            if current_position < 1.0:  # 如果还没有滚动到底部
+            if current_position < 1.0:  # If not at the bottom
                 self.text_widget.yview_moveto(current_position + self.scroll_speed)
-                self.scroll_timer = self.after(20, self.scroll_text)  # 每20毫秒更新一次
+                self.scroll_timer = self.after(20, self.scroll_text)  # Update every 20ms
 
 if __name__ == "__main__":
     app = FileUploadWindow()

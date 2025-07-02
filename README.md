@@ -1,45 +1,45 @@
 # MyTempo
 
-MyTempo 是一个简单的桌面应用程序，用于以电影片尾字幕滚动的方式阅读Markdown文件。
+MyTempo is a desktop application that allows you to read Markdown files in a movie-credits-style scrolling format.
 
-## 功能特点
+## Features
 
-- 支持拖拽或点击选择MD文件
-- 半透明黑色背景的阅读界面
-- 按住下键实现平滑的文字向上滚动效果
-- 可调整窗口大小
-- 支持Markdown格式
-- 使用微软雅黑字体，清晰易读
+- Drag & drop or click to select MD files
+- Semi-transparent black background reading interface
+- Smooth text scrolling when holding the down key
+- Resizable window
+- Markdown format support
+- Clear and readable Microsoft YaHei UI font
 
-## 安装要求
+## Requirements
 
 - Python 3.x
-- 依赖包：
+- Dependencies:
   - customtkinter==5.2.2
   - markdown==3.5.2
   - tkinterdnd2==0.3.0
 
-## 安装方法
+## Installation
 
 ```bash
 pip install -r requirements.txt
 ```
 
-## 使用方法
+## Usage
 
-1. 运行程序：
+1. Run the program:
 ```bash
 python mytempo.py
 ```
 
-2. 在打开的窗口中选择或拖入Markdown文件
-3. 按住键盘下键开始滚动阅读
-4. 松开下键停止滚动
+2. Select or drag a Markdown file into the window
+3. Hold the down key to start scrolling
+4. Release the down key to stop scrolling
 
-## 版本
+## Version
 
-当前版本：0.1.0
+Current version: 0.1.1
 
-## 许可证
+## License
 
 MIT License 
