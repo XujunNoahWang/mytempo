@@ -6,7 +6,7 @@ import time
 from typing import List, Tuple, Optional
 from font_loader import load_fonts
 
-__version__ = '0.1.3'
+__version__ = '0.1.4'
 
 class LoadingWindow:
     def __init__(self) -> None:
@@ -145,40 +145,11 @@ class DocumentViewer:
         
     def create_interface(self) -> None:
         """创建文档查看界面"""
-        # 标题栏
-        title_frame = tk.Frame(self.window, bg='#2d2d2d', height=50)
-        title_frame.pack(fill='x', padx=0, pady=0)
-        title_frame.pack_propagate(False)
-        
-        # 文件名标签
-        file_name = os.path.basename(self.file_path)
-        title_label = tk.Label(
-            title_frame,
-            text=file_name,
-            font=('Inter', 14, 'bold'),
-            fg='#ffffff',
-            bg='#2d2d2d'
-        )
-        title_label.pack(side='left', padx=20, pady=15)
-        
-        # 关闭按钮
-        close_button = tk.Button(
-            title_frame,
-            text="✕",
-            font=('Inter', 12, 'bold'),
-            fg='#ffffff',
-            bg='#2d2d2d',
-            border=0,
-            cursor='hand2',
-            command=self.close_window
-        )
-        close_button.pack(side='right', padx=20, pady=15)
-        
-        # 文档内容区域
+        # 文档内容区域 - 直接填满整个窗口
         content_frame = tk.Frame(self.window, bg='#1a1a1a')
-        content_frame.pack(expand=True, fill='both', padx=20, pady=(0, 20))
+        content_frame.pack(expand=True, fill='both', padx=20, pady=20)
         
-        # 创建文本框和滚动条
+        # 创建文本框 - 无滚动条
         self.text_widget = tk.Text(
             content_frame,
             bg='#1a1a1a',
@@ -193,17 +164,23 @@ class DocumentViewer:
             selectforeground='#ffffff'
         )
         
-        # 滚动条
-        scrollbar = tk.Scrollbar(content_frame, command=self.text_widget.yview)
-        self.text_widget.config(yscrollcommand=scrollbar.set)
+        # 布局 - 文本框填满整个区域
+        self.text_widget.pack(expand=True, fill='both')
         
-        # 布局
-        scrollbar.pack(side='right', fill='y')
-        self.text_widget.pack(side='left', expand=True, fill='both')
+        # 设置文本框焦点，使其能响应键盘事件
+        self.text_widget.focus_set()
         
         # 绑定键盘事件
         self.window.bind('<Escape>', lambda e: self.close_window())
         self.window.bind('<Control-w>', lambda e: self.close_window())
+        
+        # 绑定上下键滚动事件
+        self.text_widget.bind('<Up>', self.scroll_up)
+        self.text_widget.bind('<Down>', self.scroll_down)
+        self.text_widget.bind('<Prior>', self.page_up)  # Page Up
+        self.text_widget.bind('<Next>', self.page_down)  # Page Down
+        self.text_widget.bind('<Home>', self.go_to_start)  # Home
+        self.text_widget.bind('<End>', self.go_to_end)  # End
         
     def load_document(self) -> None:
         """加载并显示文档内容"""
@@ -228,6 +205,36 @@ class DocumentViewer:
             self.text_widget.insert('1.0', error_msg)
             self.text_widget.config(state='disabled')
             
+    def scroll_up(self, event: tk.Event) -> str:
+        """向上滚动"""
+        self.text_widget.yview_scroll(-1, "units")
+        return "break"  # 阻止默认行为
+        
+    def scroll_down(self, event: tk.Event) -> str:
+        """向下滚动"""
+        self.text_widget.yview_scroll(1, "units")
+        return "break"  # 阻止默认行为
+        
+    def page_up(self, event: tk.Event) -> str:
+        """向上翻页"""
+        self.text_widget.yview_scroll(-10, "units")
+        return "break"
+        
+    def page_down(self, event: tk.Event) -> str:
+        """向下翻页"""
+        self.text_widget.yview_scroll(10, "units")
+        return "break"
+        
+    def go_to_start(self, event: tk.Event) -> str:
+        """跳转到文档开头"""
+        self.text_widget.see("1.0")
+        return "break"
+        
+    def go_to_end(self, event: tk.Event) -> str:
+        """跳转到文档结尾"""
+        self.text_widget.see("end")
+        return "break"
+
     def close_window(self) -> None:
         """关闭窗口并显示主窗口"""
         self.window.destroy()
