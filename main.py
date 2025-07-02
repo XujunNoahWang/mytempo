@@ -6,7 +6,7 @@ import time
 from typing import List, Tuple, Optional
 from font_loader import load_fonts
 
-__version__ = '0.1.2'
+__version__ = '0.1.3'
 
 class LoadingWindow:
     def __init__(self) -> None:
@@ -113,15 +113,17 @@ class DocumentViewer:
         self.parent = parent
         self.file_path = file_path
         
+        # 隐藏主窗口
+        self.parent.withdraw()
+        
         # 创建文档查看窗口
         self.window = tk.Toplevel(parent)
         self.window.title(f"My Tempo - {os.path.basename(file_path)}")
         self.window.geometry("900x700")
         self.window.configure(bg='#1a1a1a')
         
-        # 设置窗口图标和属性
-        self.window.transient(parent)
-        self.window.grab_set()
+        # 设置窗口关闭事件
+        self.window.protocol("WM_DELETE_WINDOW", self.close_window)
         
         # 居中显示窗口
         self.center_window()
@@ -227,8 +229,10 @@ class DocumentViewer:
             self.text_widget.config(state='disabled')
             
     def close_window(self) -> None:
-        """关闭窗口"""
+        """关闭窗口并显示主窗口"""
         self.window.destroy()
+        # 重新显示主窗口
+        self.parent.deiconify()
 
 class MyTempoApp:
     def __init__(self) -> None:
@@ -473,15 +477,19 @@ class MyTempoApp:
                 )
         
         if valid_files:
-            # 处理有效的Markdown文件
-            for file_path in valid_files:
-                try:
-                    DocumentViewer(self.root, file_path)
-                except Exception as e:
-                    messagebox.showerror(
-                        "打开文件失败",
-                        f"无法打开文件 {os.path.basename(file_path)}:\n{str(e)}"
+            # 处理有效的Markdown文件 - 只打开第一个文件
+            try:
+                DocumentViewer(self.root, valid_files[0])
+                if len(valid_files) > 1:
+                    messagebox.showinfo(
+                        "提示",
+                        f"检测到{len(valid_files)}个文件，当前只打开第一个文件：\n{os.path.basename(valid_files[0])}"
                     )
+            except Exception as e:
+                messagebox.showerror(
+                    "打开文件失败",
+                    f"无法打开文件 {os.path.basename(valid_files[0])}:\n{str(e)}"
+                )
             
     def run(self) -> None:
         """Run the application"""
