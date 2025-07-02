@@ -1,45 +1,62 @@
-# MyTempo
+# My Tempo
 
-MyTempo is a desktop application that allows you to read Markdown files in a movie-credits-style scrolling format.
+一个具有苹果风格设计的Markdown文档上传应用。
 
-## Features
+## 系统要求
 
-- Drag & drop or click to select MD files
-- Semi-transparent black background reading interface
-- Smooth text scrolling when holding the down key
-- Resizable window
-- Markdown format support
-- Clear and readable Microsoft YaHei UI font
+- Python 3.7+
+- Windows 10/11
 
-## Requirements
+## 安装
 
-- Python 3.x
-- Dependencies:
-  - customtkinter==5.2.2
-  - markdown==3.5.2
-  - tkinterdnd2==0.3.0
+1. 克隆仓库：
+```bash
+git clone https://github.com/yourusername/mytempo.git
+cd mytempo
+```
 
-## Installation
-
+2. 安装依赖：
 ```bash
 pip install -r requirements.txt
 ```
 
-## Usage
+## 运行
 
-1. Run the program:
 ```bash
-python mytempo.py
+python main.py
 ```
 
-2. Select or drag a Markdown file into the window
-3. Hold the down key to start scrolling
-4. Release the down key to stop scrolling
+## 功能特点
 
-## Version
+- 🎨 精美的苹果风格界面设计
+  - 使用Inter字体显示英文
+  - 使用Noto Sans SC字体显示中文
+  - 遵循苹果设计规范的色彩和间距
+- 📄 支持多种文件上传方式
+  - 拖拽上传
+  - 点击按钮选择文件
+- ✨ 优雅的交互体验
+  - 平滑的动画效果
+  - 实时的视觉反馈
+  - 清晰的错误提示
+- 🔍 严格的文件格式验证
+  - 支持.md和.markdown格式
+  - 自动过滤非Markdown文件
 
-Current version: 0.1.1
+## 开发说明
 
-## License
+- 使用Python的tkinter和tkinterdnd2构建
+- 采用面向对象的编程方式
+- 支持类型提示
+- 遵循PEP 8代码规范
+
+## 待实现功能
+
+- [ ] Markdown文件预览
+- [ ] 文件内容编辑
+- [ ] 导出为其他格式
+- [ ] 自动保存
+
+## 许可证
 
 MIT License 
