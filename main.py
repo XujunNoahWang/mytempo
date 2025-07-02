@@ -6,7 +6,7 @@ import time
 from typing import List, Tuple, Optional
 from font_loader import load_fonts
 
-__version__ = '0.1.5'
+__version__ = '0.1.6'
 
 class LoadingWindow:
     def __init__(self, parent: Optional[tk.Tk] = None, title: str = "Loading") -> None:
@@ -118,16 +118,21 @@ class LoadingWindow:
         self.root.destroy()
 
 class DocumentViewer:
+    # 定义字体大小列表
+    FONT_SIZES = [10, 11, 12, 14, 16, 18, 20, 22, 24, 28, 32, 36, 48, 60, 72]
+    DEFAULT_FONT_SIZE = 24
+
     def __init__(self, parent: tk.Tk, file_path: str) -> None:
         self.parent = parent
         self.file_path = file_path
+        self.current_font_size = self.DEFAULT_FONT_SIZE
         
         # 隐藏主窗口
         self.parent.withdraw()
         
         # 创建文档查看窗口
         self.window = tk.Toplevel(parent)
-        self.window.title(f"My Tempo - {os.path.basename(file_path)}")
+        self.update_window_title()  # 使用新方法更新标题
         self.window.geometry("900x700")
         self.window.configure(bg='#1a1a1a')
         
@@ -141,6 +146,48 @@ class DocumentViewer:
         self.loading_window = LoadingWindow(self.window, "Loading Document")
         self.window.after(100, self.load_document)
         
+        # 绑定键盘事件
+        self.window.bind('<Left>', self.decrease_font_size)
+        self.window.bind('<Right>', self.increase_font_size)
+
+    def update_window_title(self) -> None:
+        """更新窗口标题，包含文件名和字体大小信息"""
+        title = f"My Tempo - {os.path.basename(self.file_path)} - Size: {self.current_font_size}px (← →)"
+        self.window.title(title)
+
+    def increase_font_size(self, event: Optional[tk.Event] = None) -> None:
+        """增加字体大小"""
+        current_index = self.FONT_SIZES.index(self.current_font_size)
+        if current_index < len(self.FONT_SIZES) - 1:
+            self.current_font_size = self.FONT_SIZES[current_index + 1]
+            self.update_font_size()
+
+    def decrease_font_size(self, event: Optional[tk.Event] = None) -> None:
+        """减小字体大小"""
+        current_index = self.FONT_SIZES.index(self.current_font_size)
+        if current_index > 0:
+            self.current_font_size = self.FONT_SIZES[current_index - 1]
+            self.update_font_size()
+
+    def update_font_size(self) -> None:
+        """更新字体大小"""
+        if hasattr(self, 'text_widget'):
+            # 保存当前滚动位置
+            current_position = self.text_widget.yview()
+            
+            # 更新字体配置
+            self.text_widget.tag_configure('content', font=('Noto Sans SC', self.current_font_size))
+            
+            # 如果还没有应用tag，则应用tag
+            if not self.text_widget.tag_ranges('content'):
+                self.text_widget.tag_add('content', '1.0', 'end')
+            
+            # 恢复滚动位置
+            self.text_widget.yview_moveto(current_position[0])
+            
+            # 更新标题
+            self.update_window_title()
+
     def center_window(self) -> None:
         """将窗口居中显示"""
         self.window.update_idletasks()
@@ -207,7 +254,11 @@ class DocumentViewer:
             
     def display_content(self, content: str) -> None:
         """显示文档内容"""
-        self.text_widget.insert('1.0', content)
+        # 创建字体tag
+        self.text_widget.tag_configure('content', font=('Noto Sans SC', self.current_font_size))
+        
+        # 插入内容并应用tag
+        self.text_widget.insert('1.0', content, 'content')
         self.text_widget.config(state='disabled')  # 设为只读
         
     def show_error(self, error_msg: str) -> None:
@@ -226,7 +277,7 @@ class DocumentViewer:
             content_frame,
             bg='#1a1a1a',
             fg='#ffffff',
-            font=('Noto Sans SC', 11),
+            font=('Noto Sans SC', self.current_font_size),  # 使用当前字体大小
             wrap='word',
             padx=20,
             pady=20,
