@@ -11,10 +11,10 @@ __version__ = '0.1.1'
 class LoadingWindow:
     def __init__(self) -> None:
         self.root = tk.Tk()
-        self.root.withdraw()  # 先隐藏窗口
+        self.root.withdraw()  # Hide window initially
         self.root.title("Loading Fonts")
         
-        # 设置窗口大小和位置
+        # Set window size and position
         window_width = 400
         window_height = 150
         screen_width = self.root.winfo_screenwidth()
@@ -23,11 +23,11 @@ class LoadingWindow:
         y = (screen_height - window_height) // 2
         self.root.geometry(f"{window_width}x{window_height}+{x}+{y}")
         
-        # 设置窗口样式
+        # Set window style
         self.root.configure(bg='#ffffff')
-        self.root.overrideredirect(True)  # 移除窗口装饰
+        self.root.overrideredirect(True)  # Remove window decorations
         
-        # 创建一个带阴影的框架
+        # Create a frame with shadow
         self.frame = tk.Frame(
             self.root,
             bg='#ffffff',
@@ -36,17 +36,17 @@ class LoadingWindow:
         )
         self.frame.place(relx=0.5, rely=0.5, anchor='center', relwidth=0.9, relheight=0.8)
         
-        # 加载提示文本
+        # Loading text
         self.loading_label = tk.Label(
             self.frame,
-            text="正在加载字体...",
+            text="Loading Fonts...",
             font=('Arial', 14, 'bold'),
             bg='#ffffff',
             fg='#1d1d1f'
         )
         self.loading_label.pack(pady=(20, 10))
         
-        # 进度条
+        # Progress bar
         style = ttk.Style()
         style.configure(
             "Custom.Horizontal.TProgressbar",
@@ -66,10 +66,10 @@ class LoadingWindow:
         )
         self.progress_bar.pack(pady=5)
         
-        # 当前加载的字体名称
+        # Current loading font name
         self.font_label = tk.Label(
             self.frame,
-            text="准备加载...",
+            text="Preparing...",
             font=('Arial', 10),
             bg='#ffffff',
             fg='#86868b'
@@ -78,15 +78,15 @@ class LoadingWindow:
         
         self.start_time = time.time()
         self.root.update()
-        self.root.deiconify()  # 显示窗口
+        self.root.deiconify()  # Show window
         
     def update_progress(self, current: int, total: int, font_name: str) -> None:
-        """更新加载进度
+        """Update loading progress
         
         Args:
-            current: 当前进度
-            total: 总数
-            font_name: 当前字体名称
+            current: Current progress
+            total: Total items
+            font_name: Current font name
         """
         progress = (current / total) * 100
         self.progress_var.set(progress)
@@ -94,51 +94,51 @@ class LoadingWindow:
         self.root.update()
         
     def ensure_minimum_time(self) -> None:
-        """确保加载窗口至少显示指定的最小时间"""
+        """Ensure loading window displays for minimum time"""
         elapsed_time = time.time() - self.start_time
-        min_display_time = 1.0  # 最小显示时间（秒）
+        min_display_time = 1.0  # Minimum display time in seconds
         
         if elapsed_time < min_display_time:
             remaining = min_display_time - elapsed_time
             time.sleep(remaining)
             
-        # 在关闭前确保进度条显示100%
+        # Show 100% completion before closing
         self.progress_var.set(100)
-        self.font_label.config(text="加载完成")
+        self.font_label.config(text="Loading Complete")
         self.root.update()
-        time.sleep(0.2)  # 短暂显示完成状态
+        time.sleep(0.2)  # Brief display of completion status
 
 class MyTempoApp:
     def __init__(self) -> None:
-        # 显示加载窗口
+        # Show loading window
         loading_window = LoadingWindow()
         
-        # 预先创建主窗口但不显示
+        # Pre-create main window but don't show
         self.root = tkdnd.Tk()
         self.root.withdraw()
         self.root.title("My Tempo")
         self.root.geometry("600x450")
         self.root.configure(bg='#f5f5f7')
         
-        # 加载字体
+        # Load fonts
         load_fonts(loading_window.update_progress)
         
-        # 确保最小显示时间
+        # Ensure minimum display time
         loading_window.ensure_minimum_time()
         
-        # 设置主窗口位置（在显示之前）
+        # Set up main window (before showing)
         self.center_window()
         self.setup_styles()
         self.create_upload_interface()
         self.setup_drag_drop()
         
-        # 关闭加载窗口并显示主窗口
+        # Close loading window and show main window
         self.root.update()
         loading_window.root.destroy()
         self.root.deiconify()
         
     def center_window(self) -> None:
-        """将窗口居中显示"""
+        """Center window on screen"""
         self.root.update_idletasks()
         width = self.root.winfo_width()
         height = self.root.winfo_height()
@@ -147,11 +147,11 @@ class MyTempoApp:
         self.root.geometry(f'{width}x{height}+{x}+{y}')
         
     def get_font(self, is_chinese: bool = False, size: int = 12, weight: str = 'normal') -> Tuple[str, int, str]:
-        """获取合适的字体，中文使用Noto Sans SC，英文使用Inter"""
+        """Get appropriate font, Noto Sans SC for Chinese, Inter for English"""
         return ('Noto Sans SC' if is_chinese else 'Inter', size, weight)
             
     def draw_rounded_rect(self, event: Optional[tk.Event] = None) -> None:
-        """绘制圆角矩形背景"""
+        """Draw rounded rectangle background"""
         self.drop_canvas.delete("bg_rect")
         width = self.drop_canvas.winfo_width()
         height = self.drop_canvas.winfo_height()
@@ -172,7 +172,7 @@ class MyTempoApp:
             
     def create_rounded_rectangle(self, canvas: tk.Canvas, x1: int, y1: int, x2: int, y2: int, 
                                radius: int = 12, **kwargs) -> int:
-        """创建圆角矩形"""
+        """Create rounded rectangle"""
         points = []
         for x, y in [(x1, y1 + radius), (x1, y1), (x1 + radius, y1),
                      (x2 - radius, y1), (x2, y1), (x2, y1 + radius),
@@ -182,7 +182,7 @@ class MyTempoApp:
         return canvas.create_polygon(points, smooth=True, **kwargs)
         
     def setup_styles(self) -> None:
-        """设置苹果风格的样式"""
+        """Set up Apple-style UI"""
         style = ttk.Style()
         style.configure('Apple.TButton',
                        background='#007AFF',
@@ -196,7 +196,7 @@ class MyTempoApp:
                            ('pressed', '#004499')])
         
     def create_upload_interface(self) -> None:
-        """创建文件上传界面"""
+        """Create file upload interface"""
         main_frame = tk.Frame(self.root, bg='#f5f5f7')
         main_frame.pack(expand=True, fill='both', padx=30, pady=30)
         
@@ -271,7 +271,7 @@ class MyTempoApp:
             widget.bind('<Leave>', self.on_drag_leave)
         
     def setup_drag_drop(self) -> None:
-        """设置拖拽功能"""
+        """Set up drag and drop functionality"""
         for widget in [self.drop_canvas, self.drop_frame]:
             widget.drop_target_register(tkdnd.DND_FILES)
             widget.dnd_bind('<<DropEnter>>', self.on_drag_enter)
@@ -279,7 +279,7 @@ class MyTempoApp:
             widget.dnd_bind('<<Drop>>', self.on_file_drop)
         
     def on_drag_enter(self, event: Optional[tk.Event] = None) -> None:
-        """鼠标进入拖拽区域时的效果"""
+        """Handle mouse enter drag area"""
         self.drop_canvas.delete("bg_rect")
         width = self.drop_canvas.winfo_width()
         height = self.drop_canvas.winfo_height()
@@ -295,11 +295,11 @@ class MyTempoApp:
             )
         
     def on_drag_leave(self, event: Optional[tk.Event] = None) -> None:
-        """鼠标离开拖拽区域时的效果"""
+        """Handle mouse leave drag area"""
         self.draw_rounded_rect()
         
     def on_button_enter(self, event: Optional[tk.Event] = None) -> None:
-        """鼠标进入按钮时的效果"""
+        """Handle mouse enter button"""
         self.button_canvas.delete("button_bg")
         self.button_bg = self.create_rounded_rectangle(
             self.button_canvas,
@@ -312,7 +312,7 @@ class MyTempoApp:
         self.button_canvas.tag_raise("button_text")
         
     def on_button_leave(self, event: Optional[tk.Event] = None) -> None:
-        """鼠标离开按钮时的效果"""
+        """Handle mouse leave button"""
         self.button_canvas.delete("button_bg")
         self.button_bg = self.create_rounded_rectangle(
             self.button_canvas,
@@ -325,37 +325,37 @@ class MyTempoApp:
         self.button_canvas.tag_raise("button_text")
         
     def on_file_drop(self, event: tk.Event) -> None:
-        """处理文件拖拽事件"""
+        """Handle file drop event"""
         file_paths = self.root.tk.splitlist(event.data)
         self.process_files(file_paths)
         
     def select_file(self) -> None:
-        """打开文件选择对话框"""
+        """Open file selection dialog"""
         file_paths = filedialog.askopenfilenames(
-            title="选择Markdown文件",
+            title="Select Markdown Files",
             filetypes=[("Markdown files", "*.md *.markdown")]
         )
         if file_paths:
             self.process_files(file_paths)
             
     def process_files(self, file_paths: List[str]) -> None:
-        """处理选中的文件"""
+        """Process selected files"""
         valid_files = []
         for file_path in file_paths:
             if file_path.lower().endswith(('.md', '.markdown')):
                 valid_files.append(file_path)
             else:
                 messagebox.showwarning(
-                    "不支持的文件格式",
-                    f"文件 {os.path.basename(file_path)} 不是Markdown文件"
+                    "Invalid File Format",
+                    f"File {os.path.basename(file_path)} is not a Markdown file"
                 )
         
         if valid_files:
-            # TODO: 处理有效的Markdown文件
+            # TODO: Process valid Markdown files
             pass
             
     def run(self) -> None:
-        """运行应用程序"""
+        """Run the application"""
         self.root.mainloop()
 
 if __name__ == '__main__':

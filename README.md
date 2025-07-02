@@ -1,62 +1,62 @@
 # My Tempo
 
-一个具有苹果风格设计的Markdown文档上传应用。
+A Markdown document uploader with Apple-style design.
 
-## 系统要求
+## System Requirements
 
 - Python 3.7+
 - Windows 10/11
 
-## 安装
+## Installation
 
-1. 克隆仓库：
+1. Clone repository:
 ```bash
 git clone https://github.com/yourusername/mytempo.git
 cd mytempo
 ```
 
-2. 安装依赖：
+2. Install dependencies:
 ```bash
 pip install -r requirements.txt
 ```
 
-## 运行
+## Running
 
 ```bash
 python main.py
 ```
 
-## 功能特点
+## Features
 
-- 🎨 精美的苹果风格界面设计
-  - 使用Inter字体显示英文
-  - 使用Noto Sans SC字体显示中文
-  - 遵循苹果设计规范的色彩和间距
-- 📄 支持多种文件上传方式
-  - 拖拽上传
-  - 点击按钮选择文件
-- ✨ 优雅的交互体验
-  - 平滑的动画效果
-  - 实时的视觉反馈
-  - 清晰的错误提示
-- 🔍 严格的文件格式验证
-  - 支持.md和.markdown格式
-  - 自动过滤非Markdown文件
+- 🎨 Beautiful Apple-style interface design
+  - Inter font for English text
+  - Noto Sans SC font for Chinese text
+  - Apple design guidelines compliant colors and spacing
+- 📄 Multiple file upload methods
+  - Drag and drop support
+  - Button click file selection
+- ✨ Elegant interaction experience
+  - Smooth animations
+  - Real-time visual feedback
+  - Clear error messages
+- 🔍 Strict file format validation
+  - Supports .md and .markdown formats
+  - Automatic non-Markdown file filtering
 
-## 开发说明
+## Development Notes
 
-- 使用Python的tkinter和tkinterdnd2构建
-- 采用面向对象的编程方式
-- 支持类型提示
-- 遵循PEP 8代码规范
+- Built with Python's tkinter and tkinterdnd2
+- Object-oriented programming approach
+- Type hints support
+- PEP 8 code style compliance
 
-## 待实现功能
+## Upcoming Features
 
-- [ ] Markdown文件预览
-- [ ] 文件内容编辑
-- [ ] 导出为其他格式
-- [ ] 自动保存
+- [ ] Markdown file preview
+- [ ] File content editing
+- [ ] Export to other formats
+- [ ] Auto-save functionality
 
-## 许可证
+## License
 
 MIT License 
