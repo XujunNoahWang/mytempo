@@ -123,17 +123,18 @@ class LoadingWindow:
 class DocumentViewer:
     """文档查看器类"""
     # 版本号
-    VERSION = "0.1.8"  # 添加了电影字幕般的平滑滚动效果
+    VERSION = "0.1.9"  # 优化了平滑滚动效果，移除了1像素的限制，使滚动更加流畅
     
     # 支持的字体大小
     FONT_SIZES = [10, 11, 12, 14, 16, 18, 20, 22, 24, 28, 32, 36, 48, 60, 72]
     DEFAULT_FONT_SIZE = 24
 
     # 滚动相关配置
-    SCROLL_SPEED = 0.001  # 基础滚动速度
-    SCROLL_INTERVAL = 50  # 滚动更新间隔（毫秒）
+    SCROLL_SPEED = 0.0002  # 基础滚动速度，每次滚动移动窗口高度的 0.02%
+    SCROLL_INTERVAL = 16  # 滚动更新间隔（毫秒），约60fps以实现最佳平滑效果
     
     def __init__(self, parent: tk.Tk, file_path: str) -> None:
+        """初始化文档查看器"""
         self.parent = parent
         self.file_path = file_path
         self.current_font_size = self.DEFAULT_FONT_SIZE
@@ -391,7 +392,8 @@ class DocumentViewer:
             
             # 如果还没到底部，继续滚动
             if current_pos < 1.0:
-                self.text_widget.yview_moveto(current_pos + self.SCROLL_SPEED)
+                # 直接使用设定的滚动速度
+                self.text_widget.yview_moveto(current_pos + DocumentViewer.SCROLL_SPEED)
                 self.scroll_id = self.window.after(self.SCROLL_INTERVAL, self.smooth_scroll)
             else:
                 self.stop_smooth_scroll()
