@@ -124,7 +124,7 @@ class LoadingWindow:
 class DocumentViewer:
     """文档查看器类"""
     # 版本号
-    VERSION = "0.2.7"  # 添加了完整的Markdown文本样式支持
+    VERSION = "0.2.8"  # 添加了高亮文本支持（==xxx==）
     
     # 支持的字体大小
     FONT_SIZES = [10, 11, 12, 14, 16, 18, 20, 22, 24, 28, 32, 36, 48, 60, 72]
@@ -199,8 +199,8 @@ class DocumentViewer:
             self.text_widget.delete('1.0', tk.END)
             
             # 分析文本并应用适当的字体
-            # 按优先级处理：粗体+斜体 > 粗体 > 斜体 > 普通文本
-            parts = re.split(r'(\*\*\*[^*]+\*\*\*|\*\*[^*]+\*\*|_[^_]+_|\*[^*]+\*)', content)
+            # 按优先级处理：粗体+斜体 > 粗体 > 斜体 > 高亮 > 普通文本
+            parts = re.split(r'(\*\*\*[^*]+\*\*\*|\*\*[^*]+\*\*|_[^_]+_|\*[^*]+\*|==[^=]+==)', content)
             for part in parts:
                 if part.startswith('***') and part.endswith('***'):
                     # 处理粗体+斜体文本
@@ -228,6 +228,14 @@ class DocumentViewer:
                             self.text_widget.insert(tk.END, char, 'zh_italic')
                         else:
                             self.text_widget.insert(tk.END, char, 'en_italic')
+                elif part.startswith('==') and part.endswith('=='):
+                    # 处理高亮文本
+                    text = part[2:-2]  # 去掉前后的等号
+                    for char in text:
+                        if '\u4e00' <= char <= '\u9fff':  # 中文字符范围
+                            self.text_widget.insert(tk.END, char, 'zh_highlight')
+                        else:
+                            self.text_widget.insert(tk.END, char, 'en_highlight')
                 else:
                     # 处理普通文本
                     for char in part:
@@ -301,6 +309,11 @@ class DocumentViewer:
         self.text_widget.tag_configure('zh_bold_italic', font=('Noto Sans SC', self.current_font_size, 'bold italic'))
         # 配置英文加粗斜体标签
         self.text_widget.tag_configure('en_bold_italic', font=('Inter', self.current_font_size, 'bold italic'))
+
+        # 配置中文高亮标签
+        self.text_widget.tag_configure('zh_highlight', font=('Noto Sans SC', self.current_font_size), background='#404040')
+        # 配置英文高亮标签
+        self.text_widget.tag_configure('en_highlight', font=('Inter', self.current_font_size), background='#404040')
         
         # 禁用文本编辑
         self.text_widget.config(state=tk.DISABLED)
@@ -357,6 +370,8 @@ class DocumentViewer:
             self.text_widget.tag_configure('en_bold', font=('Inter', self.current_font_size, 'bold'))
             self.text_widget.tag_configure('zh_bold_italic', font=('Noto Sans SC', self.current_font_size, 'bold italic'))
             self.text_widget.tag_configure('en_bold_italic', font=('Inter', self.current_font_size, 'bold italic'))
+            self.text_widget.tag_configure('zh_highlight', font=('Noto Sans SC', self.current_font_size), background='#404040')
+            self.text_widget.tag_configure('en_highlight', font=('Inter', self.current_font_size), background='#404040')
             
             # 恢复滚动位置
             self.text_widget.yview_moveto(current_position[0])
