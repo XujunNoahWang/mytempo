@@ -125,7 +125,7 @@ class LoadingWindow:
 class DocumentViewer:
     """文档查看器类"""
     # 版本号
-    VERSION = "0.2.9"  # 添加了水平线支持（---）
+    VERSION = "0.3.0"  # 添加了标题支持（#-######）
     
     # 支持的字体大小
     FONT_SIZES = [10, 11, 12, 14, 16, 18, 20, 22, 24, 28, 32, 36, 48, 60, 72]
@@ -200,10 +200,26 @@ class DocumentViewer:
             self.text_widget.delete('1.0', tk.END)
             
             # 分析文本并应用适当的字体
-            # 按优先级处理：水平线 > 粗体+斜体 > 粗体 > 斜体 > 高亮 > 普通文本
-            parts = re.split(r'(^---$|\*\*\*[^*]+\*\*\*|\*\*[^*]+\*\*|_[^_]+_|\*[^*]+\*|==[^=]+==)', content, flags=re.MULTILINE)
+            # 按优先级处理：标题 > 水平线 > 粗体+斜体 > 粗体 > 斜体 > 高亮 > 普通文本
+            parts = re.split(r'(^#{1,6}\s+.+$|^---$|\*\*\*[^*]+\*\*\*|\*\*[^*]+\*\*|_[^_]+_|\*[^*]+\*|==[^=]+==)', content, flags=re.MULTILINE)
             for part in parts:
-                if part == '---':
+                if part.startswith('#') and ' ' in part:
+                    # 处理标题
+                    level = 0
+                    for char in part:
+                        if char == '#':
+                            level += 1
+                        else:
+                            break
+                    
+                    if 1 <= level <= 6 and part[level] == ' ':
+                        title_text = part[level+1:].strip()
+                        for char in title_text:
+                            if '\u4e00' <= char <= '\u9fff':  # 中文字符范围
+                                self.text_widget.insert(tk.END, char, f'zh_h{level}')
+                            else:
+                                self.text_widget.insert(tk.END, char, f'en_h{level}')
+                elif part == '---':
                     # 处理水平线 - 根据界面宽度动态计算长度
                     line_length = self.calculate_horizontal_line_length()
                     self.text_widget.insert(tk.END, '─' * line_length, 'horizontal_line')
@@ -323,6 +339,12 @@ class DocumentViewer:
         # 配置水平线标签
         self.text_widget.tag_configure('horizontal_line', font=('Inter', self.current_font_size), foreground='#666666', justify='center')
         
+        # 配置各级标题标签
+        for level in range(1, 7):
+            heading_size = self.get_heading_font_size(level)
+            self.text_widget.tag_configure(f'zh_h{level}', font=('Noto Sans SC', heading_size, 'bold'))
+            self.text_widget.tag_configure(f'en_h{level}', font=('Inter', heading_size, 'bold'))
+        
         # 禁用文本编辑
         self.text_widget.config(state=tk.DISABLED)
         
@@ -367,6 +389,11 @@ class DocumentViewer:
             # 如果计算失败，返回默认值
             return 60
 
+    def get_heading_font_size(self, level: int) -> int:
+        """根据标题级别计算字体大小"""
+        multipliers = {1: 2.0, 2: 1.5, 3: 1.25, 4: 1.1, 5: 1.0, 6: 0.9}
+        return int(self.current_font_size * multipliers.get(level, 1.0))
+
     def handle_left_key(self, event: tk.Event) -> str:
         """处理左键事件"""
         self.decrease_font_size()
@@ -408,6 +435,12 @@ class DocumentViewer:
             self.text_widget.tag_configure('zh_highlight', font=('Noto Sans SC', self.current_font_size), background='#404040')
             self.text_widget.tag_configure('en_highlight', font=('Inter', self.current_font_size), background='#404040')
             self.text_widget.tag_configure('horizontal_line', font=('Inter', self.current_font_size), foreground='#666666', justify='center')
+            
+            # 更新各级标题标签
+            for level in range(1, 7):
+                heading_size = self.get_heading_font_size(level)
+                self.text_widget.tag_configure(f'zh_h{level}', font=('Noto Sans SC', heading_size, 'bold'))
+                self.text_widget.tag_configure(f'en_h{level}', font=('Inter', heading_size, 'bold'))
             
             # 恢复滚动位置
             self.text_widget.yview_moveto(current_position[0])
