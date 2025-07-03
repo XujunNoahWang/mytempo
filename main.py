@@ -9,7 +9,7 @@ import json
 from typing import List, Tuple, Optional, Dict, Any
 from font_loader import load_fonts
 
-__version__ = '0.1.7'  # 更新版本号：修复引用样式的对齐和缩进问题
+__version__ = '0.3.3'  # 更新版本号：修复引用样式的对齐和缩进问题
 
 class UserConfig:
     """用户配置管理类"""
