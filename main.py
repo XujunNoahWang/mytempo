@@ -9,7 +9,7 @@ import json
 from typing import List, Tuple, Optional, Dict, Any
 from font_loader import load_fonts
 
-__version__ = '0.3.7'  # 更新版本号：添加文档加载过渡动画
+__version__ = '0.4.1'  # 更新版本号：移除窗口最小尺寸限制，修复水平线渲染问题
 
 class UserConfig:
     """用户配置管理类"""
@@ -183,7 +183,7 @@ class LoadingWindow:
 class DocumentViewer:
     """文档查看器类"""
     # 版本号
-    VERSION = "0.4.0"  # 移除了窗口最小尺寸限制
+    VERSION = "0.4.1"  # 移除了窗口最小尺寸限制，修复水平线渲染问题
     
     # 支持的字体大小
     FONT_SIZES = [20, 22, 24, 28, 32, 36, 48, 60, 72]
