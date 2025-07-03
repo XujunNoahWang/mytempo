@@ -9,7 +9,7 @@ import json
 from typing import List, Tuple, Optional, Dict, Any
 from font_loader import load_fonts
 
-__version__ = '0.1.6'
+__version__ = '0.1.7'  # 更新版本号：修复引用样式的对齐和缩进问题
 
 class UserConfig:
     """用户配置管理类"""
@@ -267,70 +267,161 @@ class DocumentViewer:
             self.text_widget.delete('1.0', tk.END)
             
             # 分析文本并应用适当的字体
-            # 按优先级处理：标题 > 水平线 > 粗体+斜体 > 粗体 > 斜体 > 高亮 > 普通文本
-            parts = re.split(r'(^#{1,6}\s+.+$|^---$|\*\*\*[^*]+\*\*\*|\*\*[^*]+\*\*|_[^_]+_|\*[^*]+\*|==[^=]+==)', content, flags=re.MULTILINE)
-            for part in parts:
-                if part.startswith('#') and ' ' in part:
-                    # 处理标题
-                    level = 0
-                    for char in part:
-                        if char == '#':
-                            level += 1
+            # 按优先级处理：标题 > 水平线 > 引用 > 粗体+斜体 > 粗体 > 斜体 > 高亮 > 普通文本
+            lines = content.split('\n')
+            for line in lines:
+                if line.startswith('# '):
+                    # 处理一级标题
+                    title_text = line[2:].strip()
+                    for char in title_text:
+                        if '\u4e00' <= char <= '\u9fff':
+                            self.text_widget.insert(tk.END, char, 'zh_h1')
                         else:
-                            break
-                    
-                    if 1 <= level <= 6 and part[level] == ' ':
-                        title_text = part[level+1:].strip()
-                        for char in title_text:
-                            if '\u4e00' <= char <= '\u9fff':  # 中文字符范围
-                                self.text_widget.insert(tk.END, char, f'zh_h{level}')
-                            else:
-                                self.text_widget.insert(tk.END, char, f'en_h{level}')
-                elif part == '---':
-                    # 处理水平线 - 根据界面宽度动态计算长度
+                            self.text_widget.insert(tk.END, char, 'en_h1')
+                    self.text_widget.insert(tk.END, '\n')
+                elif line.startswith('## '):
+                    # 处理二级标题
+                    title_text = line[3:].strip()
+                    for char in title_text:
+                        if '\u4e00' <= char <= '\u9fff':
+                            self.text_widget.insert(tk.END, char, 'zh_h2')
+                        else:
+                            self.text_widget.insert(tk.END, char, 'en_h2')
+                    self.text_widget.insert(tk.END, '\n')
+                elif line.startswith('### '):
+                    # 处理三级标题
+                    title_text = line[4:].strip()
+                    for char in title_text:
+                        if '\u4e00' <= char <= '\u9fff':
+                            self.text_widget.insert(tk.END, char, 'zh_h3')
+                        else:
+                            self.text_widget.insert(tk.END, char, 'en_h3')
+                    self.text_widget.insert(tk.END, '\n')
+                elif line.startswith('#### '):
+                    # 处理四级标题
+                    title_text = line[5:].strip()
+                    for char in title_text:
+                        if '\u4e00' <= char <= '\u9fff':
+                            self.text_widget.insert(tk.END, char, 'zh_h4')
+                        else:
+                            self.text_widget.insert(tk.END, char, 'en_h4')
+                    self.text_widget.insert(tk.END, '\n')
+                elif line.startswith('##### '):
+                    # 处理五级标题
+                    title_text = line[6:].strip()
+                    for char in title_text:
+                        if '\u4e00' <= char <= '\u9fff':
+                            self.text_widget.insert(tk.END, char, 'zh_h5')
+                        else:
+                            self.text_widget.insert(tk.END, char, 'en_h5')
+                    self.text_widget.insert(tk.END, '\n')
+                elif line.startswith('###### '):
+                    # 处理六级标题
+                    title_text = line[7:].strip()
+                    for char in title_text:
+                        if '\u4e00' <= char <= '\u9fff':
+                            self.text_widget.insert(tk.END, char, 'zh_h6')
+                        else:
+                            self.text_widget.insert(tk.END, char, 'en_h6')
+                    self.text_widget.insert(tk.END, '\n')
+                elif line == '---':
+                    # 处理水平线
                     line_length = self.calculate_horizontal_line_length()
-                    self.text_widget.insert(tk.END, '─' * line_length, 'horizontal_line')
-                elif part.startswith('***') and part.endswith('***'):
-                    # 处理粗体+斜体文本
-                    text = part[3:-3]  # 去掉前后的星号
-                    for char in text:
-                        if '\u4e00' <= char <= '\u9fff':  # 中文字符范围
-                            self.text_widget.insert(tk.END, char, 'zh_bold_italic')
-                        else:
-                            self.text_widget.insert(tk.END, char, 'en_bold_italic')
-                elif part.startswith('**') and part.endswith('**'):
-                    # 处理加粗文本
-                    text = part[2:-2]  # 去掉前后的星号
-                    for char in text:
-                        if '\u4e00' <= char <= '\u9fff':  # 中文字符范围
-                            self.text_widget.insert(tk.END, char, 'zh_bold')
-                        else:
-                            self.text_widget.insert(tk.END, char, 'en_bold')
-                elif part.startswith('_') and part.endswith('_') or \
-                     part.startswith('*') and part.endswith('*') and \
-                     not part.startswith('**'):
-                    # 处理斜体文本
-                    text = part[1:-1]  # 去掉前后的下划线或星号
-                    for char in text:
-                        if '\u4e00' <= char <= '\u9fff':  # 中文字符范围
-                            self.text_widget.insert(tk.END, char, 'zh_italic')
-                        else:
-                            self.text_widget.insert(tk.END, char, 'en_italic')
-                elif part.startswith('==') and part.endswith('=='):
-                    # 处理高亮文本
-                    text = part[2:-2]  # 去掉前后的等号
-                    for char in text:
-                        if '\u4e00' <= char <= '\u9fff':  # 中文字符范围
-                            self.text_widget.insert(tk.END, char, 'zh_highlight')
-                        else:
-                            self.text_widget.insert(tk.END, char, 'en_highlight')
+                    self.text_widget.insert(tk.END, '─' * line_length + '\n', 'horizontal_line')
+                elif line.startswith('> '):
+                    # 处理引用文本
+                    quote_text = line[2:].strip()  # 去掉 > 和空格
+                    # 添加竖线，使用固定的小缩进
+                    self.text_widget.insert(tk.END, ' ' * 5 + '│ ', 'horizontal_line')
+                    
+                    # 处理引用内的文本格式
+                    if quote_text.startswith('***') and quote_text.endswith('***'):
+                        # 粗体+斜体
+                        text = quote_text[3:-3]
+                        for char in text:
+                            if '\u4e00' <= char <= '\u9fff':
+                                self.text_widget.insert(tk.END, char, ('zh_bold_italic', 'zh_quote'))
+                            else:
+                                self.text_widget.insert(tk.END, char, ('en_bold_italic', 'en_quote'))
+                    elif quote_text.startswith('**') and quote_text.endswith('**'):
+                        # 粗体
+                        text = quote_text[2:-2]
+                        for char in text:
+                            if '\u4e00' <= char <= '\u9fff':
+                                self.text_widget.insert(tk.END, char, ('zh_bold', 'zh_quote'))
+                            else:
+                                self.text_widget.insert(tk.END, char, ('en_bold', 'en_quote'))
+                    elif (quote_text.startswith('_') and quote_text.endswith('_')) or \
+                         (quote_text.startswith('*') and quote_text.endswith('*')):
+                        # 斜体
+                        text = quote_text[1:-1]
+                        for char in text:
+                            if '\u4e00' <= char <= '\u9fff':
+                                self.text_widget.insert(tk.END, char, ('zh_italic', 'zh_quote'))
+                            else:
+                                self.text_widget.insert(tk.END, char, ('en_italic', 'en_quote'))
+                    elif quote_text.startswith('==') and quote_text.endswith('=='):
+                        # 高亮
+                        text = quote_text[2:-2]
+                        for char in text:
+                            if '\u4e00' <= char <= '\u9fff':
+                                self.text_widget.insert(tk.END, char, ('zh_highlight', 'zh_quote'))
+                            else:
+                                self.text_widget.insert(tk.END, char, ('en_highlight', 'en_quote'))
+                    else:
+                        # 普通文本
+                        for char in quote_text:
+                            if '\u4e00' <= char <= '\u9fff':
+                                self.text_widget.insert(tk.END, char, 'zh_quote')
+                            else:
+                                self.text_widget.insert(tk.END, char, 'en_quote')
+                    self.text_widget.insert(tk.END, '\n')  # 引用块后添加换行
                 else:
-                    # 处理普通文本
-                    for char in part:
-                        if '\u4e00' <= char <= '\u9fff':  # 中文字符范围
-                            self.text_widget.insert(tk.END, char, 'zh')
+                    # 处理普通文本中的格式
+                    parts = re.split(r'(\*\*\*[^*]+\*\*\*|\*\*[^*]+\*\*|_[^_]+_|\*[^*]+\*|==[^=]+==)', line)
+                    for part in parts:
+                        if part.startswith('***') and part.endswith('***'):
+                            # 处理粗体+斜体文本
+                            text = part[3:-3]
+                            for char in text:
+                                if '\u4e00' <= char <= '\u9fff':
+                                    self.text_widget.insert(tk.END, char, 'zh_bold_italic')
+                                else:
+                                    self.text_widget.insert(tk.END, char, 'en_bold_italic')
+                        elif part.startswith('**') and part.endswith('**'):
+                            # 处理加粗文本
+                            text = part[2:-2]
+                            for char in text:
+                                if '\u4e00' <= char <= '\u9fff':
+                                    self.text_widget.insert(tk.END, char, 'zh_bold')
+                                else:
+                                    self.text_widget.insert(tk.END, char, 'en_bold')
+                        elif (part.startswith('_') and part.endswith('_')) or \
+                             (part.startswith('*') and part.endswith('*') and not part.startswith('**')):
+                            # 处理斜体文本
+                            text = part[1:-1]
+                            for char in text:
+                                if '\u4e00' <= char <= '\u9fff':
+                                    self.text_widget.insert(tk.END, char, 'zh_italic')
+                                else:
+                                    self.text_widget.insert(tk.END, char, 'en_italic')
+                        elif part.startswith('==') and part.endswith('=='):
+                            # 处理高亮文本
+                            text = part[2:-2]
+                            for char in text:
+                                if '\u4e00' <= char <= '\u9fff':
+                                    self.text_widget.insert(tk.END, char, 'zh_highlight')
+                                else:
+                                    self.text_widget.insert(tk.END, char, 'en_highlight')
                         else:
-                            self.text_widget.insert(tk.END, char, 'en')
+                            # 处理普通文本
+                            for char in part:
+                                if '\u4e00' <= char <= '\u9fff':
+                                    self.text_widget.insert(tk.END, char, 'zh')
+                                else:
+                                    self.text_widget.insert(tk.END, char, 'en')
+                    if line:  # 如果不是空行，添加换行符
+                        self.text_widget.insert(tk.END, '\n')
             
             self.text_widget.config(state=tk.DISABLED)  # 重新禁用编辑
             
@@ -404,7 +495,13 @@ class DocumentViewer:
         self.text_widget.tag_configure('en_highlight', font=('Inter', self.current_font_size), background='#404040')
         
         # 配置水平线标签
-        self.text_widget.tag_configure('horizontal_line', font=('Inter', self.current_font_size), foreground='#666666', justify='center')
+        self.text_widget.tag_configure('horizontal_line', font=('Inter', self.current_font_size), foreground='#666666')
+        
+        # 配置引用标签 - 设置左对齐，20像素缩进，使用粗体
+        self.text_widget.tag_configure('zh_quote', font=('Noto Sans SC', self.current_font_size, 'bold'), 
+                                     lmargin1=20, lmargin2=20)
+        self.text_widget.tag_configure('en_quote', font=('Inter', self.current_font_size, 'bold'), 
+                                     lmargin1=20, lmargin2=20)
         
         # 配置各级标题标签
         for level in range(1, 7):
@@ -505,7 +602,12 @@ class DocumentViewer:
             self.text_widget.tag_configure('en_bold_italic', font=('Inter', self.current_font_size, 'bold italic'))
             self.text_widget.tag_configure('zh_highlight', font=('Noto Sans SC', self.current_font_size), background='#404040')
             self.text_widget.tag_configure('en_highlight', font=('Inter', self.current_font_size), background='#404040')
-            self.text_widget.tag_configure('horizontal_line', font=('Inter', self.current_font_size), foreground='#666666', justify='center')
+            
+            # 更新引用样式
+            self.text_widget.tag_configure('zh_quote', font=('Noto Sans SC', self.current_font_size, 'bold'), 
+                                         lmargin1=20, lmargin2=20)
+            self.text_widget.tag_configure('en_quote', font=('Inter', self.current_font_size, 'bold'), 
+                                         lmargin1=20, lmargin2=20)
             
             # 更新各级标题标签
             for level in range(1, 7):
