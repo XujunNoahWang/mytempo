@@ -183,7 +183,7 @@ class LoadingWindow:
 class DocumentViewer:
     """文档查看器类"""
     # 版本号
-    VERSION = "0.3.9"  # 修复了水平线长度问题
+    VERSION = "0.4.0"  # 移除了窗口最小尺寸限制
     
     # 支持的字体大小
     FONT_SIZES = [20, 22, 24, 28, 32, 36, 48, 60, 72]
@@ -251,9 +251,6 @@ class DocumentViewer:
         
         # 设置窗口大小和位置
         self.window.geometry(f"{window_width}x{window_height}+{x}+{y}")
-        
-        # 设置最小窗口大小
-        self.window.minsize(self.DEFAULT_WINDOW_WIDTH, self.DEFAULT_WINDOW_HEIGHT)
         
         # 设置窗口背景色
         self.window.configure(bg='#1a1a1a')
