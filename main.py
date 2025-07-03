@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
+import tkinter.font as tkFont
 import tkinterdnd2 as tkdnd
 import os
 import time
@@ -124,7 +125,7 @@ class LoadingWindow:
 class DocumentViewer:
     """文档查看器类"""
     # 版本号
-    VERSION = "0.2.8"  # 添加了高亮文本支持（==xxx==）
+    VERSION = "0.2.9"  # 添加了水平线支持（---）
     
     # 支持的字体大小
     FONT_SIZES = [10, 11, 12, 14, 16, 18, 20, 22, 24, 28, 32, 36, 48, 60, 72]
@@ -199,10 +200,14 @@ class DocumentViewer:
             self.text_widget.delete('1.0', tk.END)
             
             # 分析文本并应用适当的字体
-            # 按优先级处理：粗体+斜体 > 粗体 > 斜体 > 高亮 > 普通文本
-            parts = re.split(r'(\*\*\*[^*]+\*\*\*|\*\*[^*]+\*\*|_[^_]+_|\*[^*]+\*|==[^=]+==)', content)
+            # 按优先级处理：水平线 > 粗体+斜体 > 粗体 > 斜体 > 高亮 > 普通文本
+            parts = re.split(r'(^---$|\*\*\*[^*]+\*\*\*|\*\*[^*]+\*\*|_[^_]+_|\*[^*]+\*|==[^=]+==)', content, flags=re.MULTILINE)
             for part in parts:
-                if part.startswith('***') and part.endswith('***'):
+                if part == '---':
+                    # 处理水平线 - 根据界面宽度动态计算长度
+                    line_length = self.calculate_horizontal_line_length()
+                    self.text_widget.insert(tk.END, '─' * line_length, 'horizontal_line')
+                elif part.startswith('***') and part.endswith('***'):
                     # 处理粗体+斜体文本
                     text = part[3:-3]  # 去掉前后的星号
                     for char in text:
@@ -315,6 +320,9 @@ class DocumentViewer:
         # 配置英文高亮标签
         self.text_widget.tag_configure('en_highlight', font=('Inter', self.current_font_size), background='#404040')
         
+        # 配置水平线标签
+        self.text_widget.tag_configure('horizontal_line', font=('Inter', self.current_font_size), foreground='#666666', justify='center')
+        
         # 禁用文本编辑
         self.text_widget.config(state=tk.DISABLED)
         
@@ -331,6 +339,33 @@ class DocumentViewer:
         opacity_percentage = int(self.OPACITY_LEVELS[self.current_opacity_index] * 100)
         title = f"My Tempo - {os.path.basename(self.file_path)} - Size: {self.current_font_size}px (←→) - Speed: {speed_multiplier}x (+-) - Opacity: {opacity_percentage}% (*/)"
         self.window.title(title)
+
+    def calculate_horizontal_line_length(self) -> int:
+        """计算水平线的长度，基于文本区域的宽度"""
+        try:
+            # 获取文本区域的宽度（像素）
+            text_width = self.text_widget.winfo_width()
+            
+            # 减去左右内边距（padx=40，所以总共80像素）
+            available_width = text_width - 80
+            
+            # 估算单个字符的宽度
+            # 使用tkinter的font.measure方法来获取准确的字符宽度
+            font = tkFont.Font(family='Inter', size=self.current_font_size)
+            char_width = font.measure('─')
+            
+            # 计算可以容纳的字符数量
+            if char_width > 0:
+                line_length = max(1, int(available_width / char_width))
+                # 限制最大长度，避免过长
+                line_length = min(line_length, 200)
+            else:
+                line_length = 60  # 默认值
+                
+            return line_length
+        except:
+            # 如果计算失败，返回默认值
+            return 60
 
     def handle_left_key(self, event: tk.Event) -> str:
         """处理左键事件"""
@@ -372,6 +407,7 @@ class DocumentViewer:
             self.text_widget.tag_configure('en_bold_italic', font=('Inter', self.current_font_size, 'bold italic'))
             self.text_widget.tag_configure('zh_highlight', font=('Noto Sans SC', self.current_font_size), background='#404040')
             self.text_widget.tag_configure('en_highlight', font=('Inter', self.current_font_size), background='#404040')
+            self.text_widget.tag_configure('horizontal_line', font=('Inter', self.current_font_size), foreground='#666666', justify='center')
             
             # 恢复滚动位置
             self.text_widget.yview_moveto(current_position[0])
