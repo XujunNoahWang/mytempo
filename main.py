@@ -5,10 +5,62 @@ import tkinterdnd2 as tkdnd
 import os
 import time
 import re
-from typing import List, Tuple, Optional
+import json
+from typing import List, Tuple, Optional, Dict, Any
 from font_loader import load_fonts
 
 __version__ = '0.1.6'
+
+class UserConfig:
+    """用户配置管理类"""
+    def __init__(self, config_file: str = "user_settings.json") -> None:
+        self.config_file = config_file
+        self.default_settings = {
+            "font_size": 24,
+            "speed_index": 0,
+            "opacity_index": 5,
+            "window_width": 900,
+            "window_height": 700
+        }
+        self.settings = self.load_settings()
+    
+    def load_settings(self) -> Dict[str, Any]:
+        """从配置文件加载设置"""
+        try:
+            if os.path.exists(self.config_file):
+                with open(self.config_file, 'r', encoding='utf-8') as f:
+                    settings = json.load(f)
+                    # 合并默认设置，确保所有必要的键都存在
+                    merged_settings = self.default_settings.copy()
+                    merged_settings.update(settings)
+                    return merged_settings
+            else:
+                return self.default_settings.copy()
+        except Exception as e:
+            print(f"Error loading settings: {e}")
+            return self.default_settings.copy()
+    
+    def save_settings(self) -> None:
+        """保存设置到配置文件"""
+        try:
+            with open(self.config_file, 'w', encoding='utf-8') as f:
+                json.dump(self.settings, f, indent=2, ensure_ascii=False)
+        except Exception as e:
+            print(f"Error saving settings: {e}")
+    
+    def get(self, key: str, default: Any = None) -> Any:
+        """获取设置值"""
+        return self.settings.get(key, default)
+    
+    def set(self, key: str, value: Any) -> None:
+        """设置值并保存"""
+        self.settings[key] = value
+        self.save_settings()
+    
+    def update_multiple(self, updates: Dict[str, Any]) -> None:
+        """批量更新设置"""
+        self.settings.update(updates)
+        self.save_settings()
 
 class LoadingWindow:
     def __init__(self, parent: Optional[tk.Tk] = None, title: str = "Loading") -> None:
@@ -125,7 +177,7 @@ class LoadingWindow:
 class DocumentViewer:
     """文档查看器类"""
     # 版本号
-    VERSION = "0.3.1"  # 移除了小字体选项，确保滚动功能稳定
+    VERSION = "0.3.2"  # 移除了小字体选项，确保滚动功能稳定
     
     # 支持的字体大小
     FONT_SIZES = [20, 22, 24, 28, 32, 36, 48, 60, 72]
@@ -145,9 +197,20 @@ class DocumentViewer:
         """初始化文档查看器"""
         self.parent = parent
         self.file_path = file_path
-        self.current_font_size = self.DEFAULT_FONT_SIZE
-        self.current_speed_index = self.DEFAULT_SPEED_INDEX  # 当前速度倍率索引
-        self.current_opacity_index = self.DEFAULT_OPACITY_INDEX  # 当前透明度索引
+        
+        # 初始化用户配置
+        self.config = UserConfig()
+        
+        # 从配置文件加载用户设置
+        self.current_font_size = self.config.get("font_size", self.DEFAULT_FONT_SIZE)
+        self.current_speed_index = self.config.get("speed_index", self.DEFAULT_SPEED_INDEX)
+        self.current_opacity_index = self.config.get("opacity_index", self.DEFAULT_OPACITY_INDEX)
+        
+        # 确保加载的值在有效范围内
+        self.current_font_size = max(min(self.current_font_size, max(self.FONT_SIZES)), min(self.FONT_SIZES))
+        self.current_speed_index = max(min(self.current_speed_index, len(self.SCROLL_SPEEDS) - 1), 0)
+        self.current_opacity_index = max(min(self.current_opacity_index, len(self.OPACITY_LEVELS) - 1), 0)
+        
         self.is_scrolling = False  # 是否正在滚动
         self.scroll_id = None  # 滚动定时器ID
         
@@ -157,7 +220,11 @@ class DocumentViewer:
         # 创建文档查看窗口
         self.window = tk.Toplevel(parent)
         self.window.title(f"My Tempo - {os.path.basename(self.file_path)}")
-        self.window.geometry("900x700")
+        
+        # 从配置加载窗口大小
+        window_width = self.config.get("window_width", 900)
+        window_height = self.config.get("window_height", 700)
+        self.window.geometry(f"{window_width}x{window_height}")
         self.window.configure(bg='#1a1a1a')
         
         # 设置窗口置顶
@@ -409,12 +476,16 @@ class DocumentViewer:
         if self.current_font_size > 20:
             self.current_font_size = next(size for size in reversed(self.FONT_SIZES) if size < self.current_font_size)
             self.update_font_size()
+            # 保存字体大小设置
+            self.config.set("font_size", self.current_font_size)
 
     def increase_font_size(self) -> None:
         """增加字体大小"""
         if self.current_font_size < 72:
             self.current_font_size = next(size for size in self.FONT_SIZES if size > self.current_font_size)
             self.update_font_size()
+            # 保存字体大小设置
+            self.config.set("font_size", self.current_font_size)
 
     def update_font_size(self) -> None:
         """更新字体大小"""
@@ -549,6 +620,23 @@ class DocumentViewer:
         """关闭窗口并显示主窗口"""
         # 确保停止所有滚动
         self.stop_smooth_scroll()
+        
+        # 保存窗口大小
+        try:
+            # 获取当前窗口大小
+            geometry = self.window.geometry()
+            # 解析几何字符串 (例如: "900x700+100+100")
+            size_part = geometry.split('+')[0]  # 获取 "900x700" 部分
+            width, height = map(int, size_part.split('x'))
+            
+            # 保存窗口大小设置
+            self.config.update_multiple({
+                "window_width": width,
+                "window_height": height
+            })
+        except Exception as e:
+            print(f"Error saving window size: {e}")
+        
         self.window.destroy()
         # 重新显示主窗口
         self.parent.deiconify()
@@ -558,6 +646,8 @@ class DocumentViewer:
         if self.current_speed_index < len(self.SCROLL_SPEEDS) - 1:
             self.current_speed_index += 1
             self.update_window_title()
+            # 保存速度设置
+            self.config.set("speed_index", self.current_speed_index)
         return 'break'
 
     def decrease_scroll_speed(self, event: tk.Event = None) -> str:
@@ -565,6 +655,8 @@ class DocumentViewer:
         if self.current_speed_index > 0:
             self.current_speed_index -= 1
             self.update_window_title()
+            # 保存速度设置
+            self.config.set("speed_index", self.current_speed_index)
         return 'break'
 
     def increase_opacity(self, event: tk.Event = None) -> str:
@@ -573,6 +665,8 @@ class DocumentViewer:
             self.current_opacity_index -= 1
             self.window.attributes('-alpha', self.OPACITY_LEVELS[self.current_opacity_index])
             self.update_window_title()
+            # 保存透明度设置
+            self.config.set("opacity_index", self.current_opacity_index)
         return 'break'
 
     def decrease_opacity(self, event: tk.Event = None) -> str:
@@ -581,6 +675,8 @@ class DocumentViewer:
             self.current_opacity_index += 1
             self.window.attributes('-alpha', self.OPACITY_LEVELS[self.current_opacity_index])
             self.update_window_title()
+            # 保存透明度设置
+            self.config.set("opacity_index", self.current_opacity_index)
         return 'break'
 
 class MyTempoApp:
