@@ -9,7 +9,7 @@ import json
 from typing import List, Tuple, Optional, Dict, Any
 from font_loader import load_fonts
 
-__version__ = '0.3.6'  # 更新版本号：恢复斜体文本的支持（* 和 _）
+__version__ = '0.3.7'  # 更新版本号：添加文档加载过渡动画
 
 class UserConfig:
     """用户配置管理类"""
@@ -241,6 +241,8 @@ class DocumentViewer:
         
         # 创建并显示加载界面
         self.loading_window = LoadingWindow(self.window, "Loading Document")
+        
+        # 使用 after 方法来延迟加载文档
         self.window.after(100, self.load_document)
 
     def load_document(self) -> None:
@@ -478,6 +480,9 @@ class DocumentViewer:
             self.text_widget.focus_set()  # 将焦点设置到文本区域
             
         except Exception as e:
+            # 如果出现错误，确保关闭加载窗口
+            if hasattr(self, 'loading_window'):
+                self.loading_window.destroy()
             messagebox.showerror("打开文件失败", f"无法打开文件 {os.path.basename(self.file_path)}:\n{str(e)}")
             self.close_window()
 
