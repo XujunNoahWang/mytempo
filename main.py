@@ -123,7 +123,7 @@ class LoadingWindow:
 class DocumentViewer:
     """文档查看器类"""
     # 版本号
-    VERSION = "0.2.3"  # 优化了文档加载后的焦点处理，确保键盘快捷键可以立即使用
+    VERSION = "0.2.4"  # 添加了窗口置顶功能
     
     # 支持的字体大小
     FONT_SIZES = [10, 11, 12, 14, 16, 18, 20, 22, 24, 28, 32, 36, 48, 60, 72]
@@ -157,6 +157,9 @@ class DocumentViewer:
         self.window.title(f"My Tempo - {os.path.basename(self.file_path)}")
         self.window.geometry("900x700")
         self.window.configure(bg='#1a1a1a')
+        
+        # 设置窗口置顶
+        self.window.attributes('-topmost', True)
         
         # 设置初始透明度
         self.window.attributes('-alpha', self.OPACITY_LEVELS[self.current_opacity_index])
