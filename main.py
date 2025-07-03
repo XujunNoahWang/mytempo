@@ -125,10 +125,10 @@ class LoadingWindow:
 class DocumentViewer:
     """文档查看器类"""
     # 版本号
-    VERSION = "0.3.0"  # 添加了标题支持（#-######）
+    VERSION = "0.3.1"  # 移除了小字体选项，确保滚动功能稳定
     
     # 支持的字体大小
-    FONT_SIZES = [10, 11, 12, 14, 16, 18, 20, 22, 24, 28, 32, 36, 48, 60, 72]
+    FONT_SIZES = [20, 22, 24, 28, 32, 36, 48, 60, 72]
     DEFAULT_FONT_SIZE = 24
 
     # 滚动相关配置
@@ -406,7 +406,7 @@ class DocumentViewer:
 
     def decrease_font_size(self) -> None:
         """减小字体大小"""
-        if self.current_font_size > 10:
+        if self.current_font_size > 20:
             self.current_font_size = next(size for size in reversed(self.FONT_SIZES) if size < self.current_font_size)
             self.update_font_size()
 
