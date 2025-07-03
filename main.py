@@ -3,6 +3,7 @@ from tkinter import ttk, filedialog, messagebox
 import tkinterdnd2 as tkdnd
 import os
 import time
+import re
 from typing import List, Tuple, Optional
 from font_loader import load_fonts
 
@@ -123,7 +124,7 @@ class LoadingWindow:
 class DocumentViewer:
     """文档查看器类"""
     # 版本号
-    VERSION = "0.2.4"  # 添加了窗口置顶功能
+    VERSION = "0.2.5"  # 添加了斜体渲染功能
     
     # 支持的字体大小
     FONT_SIZES = [10, 11, 12, 14, 16, 18, 20, 22, 24, 28, 32, 36, 48, 60, 72]
@@ -198,13 +199,23 @@ class DocumentViewer:
             self.text_widget.delete('1.0', tk.END)
             
             # 分析文本并应用适当的字体
-            pos = '1.0'
-            for char in content:
-                if '\u4e00' <= char <= '\u9fff':  # 中文字符范围
-                    self.text_widget.insert(pos, char, 'zh')
+            parts = re.split(r'(_[^_]+_)', content)
+            for part in parts:
+                if part.startswith('_') and part.endswith('_'):
+                    # 处理斜体文本
+                    text = part[1:-1]  # 去掉前后的下划线
+                    for char in text:
+                        if '\u4e00' <= char <= '\u9fff':  # 中文字符范围
+                            self.text_widget.insert(tk.END, char, 'zh_italic')
+                        else:
+                            self.text_widget.insert(tk.END, char, 'en_italic')
                 else:
-                    self.text_widget.insert(pos, char, 'en')
-                pos = self.text_widget.index(f"{pos}+1c")
+                    # 处理普通文本
+                    for char in part:
+                        if '\u4e00' <= char <= '\u9fff':  # 中文字符范围
+                            self.text_widget.insert(tk.END, char, 'zh')
+                        else:
+                            self.text_widget.insert(tk.END, char, 'en')
             
             self.text_widget.config(state=tk.DISABLED)  # 重新禁用编辑
             
@@ -257,6 +268,11 @@ class DocumentViewer:
         # 配置英文字体标签
         self.text_widget.tag_configure('en', font=('Inter', self.current_font_size))
         
+        # 配置中文斜体标签
+        self.text_widget.tag_configure('zh_italic', font=('Noto Sans SC', self.current_font_size, 'italic'))
+        # 配置英文斜体标签
+        self.text_widget.tag_configure('en_italic', font=('Inter', self.current_font_size, 'italic'))
+        
         # 禁用文本编辑
         self.text_widget.config(state=tk.DISABLED)
         
@@ -306,6 +322,8 @@ class DocumentViewer:
             self.text_widget.configure(font=('Noto Sans SC', self.current_font_size))
             self.text_widget.tag_configure('zh', font=('Noto Sans SC', self.current_font_size))
             self.text_widget.tag_configure('en', font=('Inter', self.current_font_size))
+            self.text_widget.tag_configure('zh_italic', font=('Noto Sans SC', self.current_font_size, 'italic'))
+            self.text_widget.tag_configure('en_italic', font=('Inter', self.current_font_size, 'italic'))
             
             # 恢复滚动位置
             self.text_widget.yview_moveto(current_position[0])
