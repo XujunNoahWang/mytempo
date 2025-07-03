@@ -9,10 +9,10 @@ import json
 from typing import List, Tuple, Optional, Dict, Any
 from font_loader import load_fonts
 
-__version__ = '0.4.3'  # 字体库精简
+__version__ = '0.4.3'  # Font library simplified
 
 class UserConfig:
-    """用户配置管理类"""
+    """User configuration management class"""
     def __init__(self, config_file: str = "user_settings.json") -> None:
         self.config_file = config_file
         self.default_settings = {
@@ -25,12 +25,12 @@ class UserConfig:
         self.settings = self.load_settings()
     
     def load_settings(self) -> Dict[str, Any]:
-        """从配置文件加载设置"""
+        """Load settings from config file"""
         try:
             if os.path.exists(self.config_file):
                 with open(self.config_file, 'r', encoding='utf-8') as f:
                     settings = json.load(f)
-                    # 合并默认设置，确保所有必要的键都存在
+                    # Merge default settings to ensure all necessary keys exist
                     merged_settings = self.default_settings.copy()
                     merged_settings.update(settings)
                     return merged_settings
@@ -41,7 +41,7 @@ class UserConfig:
             return self.default_settings.copy()
     
     def save_settings(self) -> None:
-        """保存设置到配置文件"""
+        """Save settings to config file"""
         try:
             with open(self.config_file, 'w', encoding='utf-8') as f:
                 json.dump(self.settings, f, indent=2, ensure_ascii=False)
@@ -49,22 +49,22 @@ class UserConfig:
             print(f"Error saving settings: {e}")
     
     def get(self, key: str, default: Any = None) -> Any:
-        """获取设置值"""
+        """Get setting value"""
         return self.settings.get(key, default)
     
     def set(self, key: str, value: Any) -> None:
-        """设置值并保存"""
+        """Set value and save"""
         self.settings[key] = value
         self.save_settings()
     
     def update_multiple(self, updates: Dict[str, Any]) -> None:
-        """批量更新设置"""
+        """Batch update settings"""
         self.settings.update(updates)
         self.save_settings()
 
 class LoadingWindow:
     def __init__(self, parent: Optional[tk.Tk] = None, title: str = "Loading") -> None:
-        self.parent = parent  # 保存父窗口引用
+        self.parent = parent  # Save parent window reference
         if parent:
             self.root = tk.Toplevel(parent)
         else:
@@ -75,17 +75,17 @@ class LoadingWindow:
         
         # Set window size and position
         window_width = 400
-        window_height = 180  # 增加高度以确保文本完全显示
+        window_height = 180  # Increase height to ensure text fully displays
         
-        # 获取屏幕尺寸
+        # Get screen dimensions
         screen_width = self.root.winfo_screenwidth()
         screen_height = self.root.winfo_screenheight()
         
-        # 计算窗口位置使其居中
+        # Calculate window position to center it
         x = (screen_width - window_width) // 2
         y = (screen_height - window_height) // 2
         
-        # 设置窗口大小和位置
+        # Set window size and position
         self.root.geometry(f"{window_width}x{window_height}+{x}+{y}")
         
         # Set window style
@@ -109,7 +109,7 @@ class LoadingWindow:
             bg='#ffffff',
             fg='#1d1d1f'
         )
-        self.loading_label.pack(pady=(25, 15))  # 调整上下间距
+        self.loading_label.pack(pady=(25, 15))  # Adjust vertical spacing
         
         # Progress bar
         style = ttk.Style()
@@ -129,7 +129,7 @@ class LoadingWindow:
             length=300,
             mode='determinate'
         )
-        self.progress_bar.pack(pady=(0, 10))  # 调整上下间距
+        self.progress_bar.pack(pady=(0, 10))  # Adjust vertical spacing
         
         # Current loading item name
         self.item_label = tk.Label(
@@ -138,9 +138,9 @@ class LoadingWindow:
             font=('Inter', 10),
             bg='#ffffff',
             fg='#86868b',
-            wraplength=280  # 添加文本自动换行
+            wraplength=280  # Add text auto-wrap
         )
-        self.item_label.pack(pady=(0, 20))  # 调整上下间距
+        self.item_label.pack(pady=(0, 20))  # Adjust vertical spacing
         
         self.start_time = time.time()
         self.root.update()
@@ -175,127 +175,127 @@ class LoadingWindow:
         time.sleep(0.2)  # Brief display of completion status
         
     def destroy(self) -> None:
-        """销毁加载窗口并将焦点返回给父窗口"""
+        """Destroy loading window and return focus to parent window"""
         self.root.destroy()
         if self.parent:
-            self.parent.focus_force()  # 强制将焦点返回给父窗口
+            self.parent.focus_force()  # Force focus back to parent window
 
 class DocumentViewer:
-    """文档查看器类"""
-    # 版本号
-    VERSION = "0.4.2"  # 完全修复水平线渲染问题
+    """Document viewer class"""
+    # Version number
+    VERSION = "0.4.2"  # Fully fixed horizontal line rendering problem
     
-    # 支持的字体大小
+    # Supported font sizes
     FONT_SIZES = [20, 22, 24, 28, 32, 36, 48, 60, 72]
     DEFAULT_FONT_SIZE = 24
 
-    # 滚动相关配置
-    BASE_SPEED = 0.0002  # 基础速度（1x）
-    SCROLL_SPEEDS = [1, 2, 3, 4, 5]  # 速度倍率列表，从1x到5x
-    DEFAULT_SPEED_INDEX = 0  # 默认使用1倍速
-    SCROLL_INTERVAL = 16  # 滚动更新间隔（毫秒），约60fps以实现最佳平滑效果
+    # Scroll related configuration
+    BASE_SPEED = 0.0002  # Base speed (1x)
+    SCROLL_SPEEDS = [1, 2, 3, 4, 5]  # Speed multiplier list, from 1x to 5x
+    DEFAULT_SPEED_INDEX = 0  # Default use 1x speed
+    SCROLL_INTERVAL = 16  # Scroll update interval (milliseconds), about 60fps for best smooth effect
 
-    # 透明度相关配置
-    OPACITY_LEVELS = [1.0, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1]  # 从不透明到透明
-    DEFAULT_OPACITY_INDEX = 5  # 默认使用50%不透明度
+    # Opacity related configuration
+    OPACITY_LEVELS = [1.0, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1]  # From opaque to transparent
+    DEFAULT_OPACITY_INDEX = 5  # Default use 50% opacity
 
-    # 窗口默认大小
+    # Default window size
     DEFAULT_WINDOW_WIDTH = 800
     DEFAULT_WINDOW_HEIGHT = 700
 
     def __init__(self, parent: tk.Tk, file_path: str) -> None:
-        """初始化文档查看器"""
+        """Initialize document viewer"""
         self.parent = parent
         self.file_path = file_path
         
-        # 初始化用户配置
+        # Initialize user configuration
         self.config = UserConfig()
         
-        # 从配置文件加载用户设置
+        # Load user settings from config file
         self.current_font_size = self.config.get("font_size", self.DEFAULT_FONT_SIZE)
         self.current_speed_index = self.config.get("speed_index", self.DEFAULT_SPEED_INDEX)
         self.current_opacity_index = self.config.get("opacity_index", self.DEFAULT_OPACITY_INDEX)
         
-        # 确保加载的值在有效范围内
+        # Ensure loaded values are within valid range
         self.current_font_size = max(min(self.current_font_size, max(self.FONT_SIZES)), min(self.FONT_SIZES))
         self.current_speed_index = max(min(self.current_speed_index, len(self.SCROLL_SPEEDS) - 1), 0)
         self.current_opacity_index = max(min(self.current_opacity_index, len(self.OPACITY_LEVELS) - 1), 0)
         
-        self.is_scrolling = False  # 是否正在滚动
-        self.scroll_id = None  # 滚动定时器ID
+        self.is_scrolling = False  # Whether scrolling
+        self.scroll_id = None  # Scroll timer ID
         
-        # 隐藏主窗口
+        # Hide main window
         self.parent.withdraw()
 
-        # 创建文档查看窗口但先不显示
+        # Create document viewer window but don't show it
         self.window = tk.Toplevel(parent)
-        self.window.withdraw()  # 先隐藏主窗口
+        self.window.withdraw()  # Hide main window first
         
-        # 创建并显示加载界面
-        self.loading_window = LoadingWindow(self.parent, "Loading Document")  # 使用 parent 作为父窗口
+        # Create and display loading interface
+        self.loading_window = LoadingWindow(self.parent, "Loading Document")  # Use parent as parent window
         
-        # 配置主窗口
+        # Configure main window
         self.window.title(f"My Tempo - {os.path.basename(self.file_path)}")
         
-        # 从配置加载窗口大小，默认为 800x700
+        # Load window size from config, default to 800x700
         window_width = self.config.get("window_width", self.DEFAULT_WINDOW_WIDTH)
         window_height = self.config.get("window_height", self.DEFAULT_WINDOW_HEIGHT)
         
-        # 获取屏幕尺寸
+        # Get screen dimensions
         screen_width = self.window.winfo_screenwidth()
         screen_height = self.window.winfo_screenheight()
         
-        # 计算窗口位置使其居中
+        # Calculate window position to center it
         x = (screen_width - window_width) // 2
         y = (screen_height - window_height) // 2
         
-        # 设置窗口大小和位置
+        # Set window size and position
         self.window.geometry(f"{window_width}x{window_height}+{x}+{y}")
         
-        # 设置窗口背景色
+        # Set window background color
         self.window.configure(bg='#1a1a1a')
         
-        # 设置窗口置顶
+        # Set window topmost
         self.window.attributes('-topmost', True)
         
-        # 设置初始透明度
+        # Set initial opacity
         self.window.attributes('-alpha', self.OPACITY_LEVELS[self.current_opacity_index])
         
-        # 设置窗口关闭事件
+        # Set window close event
         self.window.protocol("WM_DELETE_WINDOW", self.close_window)
         
-        # 使用 after 方法来延迟加载文档
+        # Use after method to delay loading document
         self.window.after(100, self.load_document)
 
     def load_document(self) -> None:
-        """加载文档内容"""
+        """Load document content"""
         try:
-            # 更新加载状态
+            # Update loading status
             self.loading_window.update_progress(1, 4, "Creating text widget...")
             
-            # 创建文本框
+            # Create text widget
             self.create_text_widget()
             
-            # 更新加载状态
+            # Update loading status
             self.loading_window.update_progress(2, 4, "Loading content...")
             
-            # 加载文件内容
+            # Load file content
             with open(self.file_path, 'r', encoding='utf-8') as file:
                 content = file.read()
             
-            # 更新加载状态
+            # Update loading status
             self.loading_window.update_progress(3, 4, "Rendering content...")
             
-            # 设置文本内容
-            self.text_widget.config(state=tk.NORMAL)  # 临时启用编辑
+            # Set text content
+            self.text_widget.config(state=tk.NORMAL)  # Temporarily enable editing
             self.text_widget.delete('1.0', tk.END)
             
-            # 分析文本并应用适当的字体
-            # 按优先级处理：标题 > 水平线 > 引用 > 粗体+斜体 > 粗体 > 斜体 > 高亮 > 普通文本
+            # Analyze text and apply appropriate font
+            # Process by priority: Title > Horizontal line > Quote > Bold+Italic > Bold > Italic > Highlight > Normal text
             lines = content.split('\n')
             for line in lines:
                 if line.startswith('# '):
-                    # 处理一级标题
+                    # Process level 1 title
                     title_text = line[2:].strip()
                     for char in title_text:
                         if '\u4e00' <= char <= '\u9fff':
@@ -304,7 +304,7 @@ class DocumentViewer:
                             self.text_widget.insert(tk.END, char, 'en_h1')
                     self.text_widget.insert(tk.END, '\n')
                 elif line.startswith('## '):
-                    # 处理二级标题
+                    # Process level 2 title
                     title_text = line[3:].strip()
                     for char in title_text:
                         if '\u4e00' <= char <= '\u9fff':
@@ -313,7 +313,7 @@ class DocumentViewer:
                             self.text_widget.insert(tk.END, char, 'en_h2')
                     self.text_widget.insert(tk.END, '\n')
                 elif line.startswith('### '):
-                    # 处理三级标题
+                    # Process level 3 title
                     title_text = line[4:].strip()
                     for char in title_text:
                         if '\u4e00' <= char <= '\u9fff':
@@ -322,7 +322,7 @@ class DocumentViewer:
                             self.text_widget.insert(tk.END, char, 'en_h3')
                     self.text_widget.insert(tk.END, '\n')
                 elif line.startswith('#### '):
-                    # 处理四级标题
+                    # Process level 4 title
                     title_text = line[5:].strip()
                     for char in title_text:
                         if '\u4e00' <= char <= '\u9fff':
@@ -331,7 +331,7 @@ class DocumentViewer:
                             self.text_widget.insert(tk.END, char, 'en_h4')
                     self.text_widget.insert(tk.END, '\n')
                 elif line.startswith('##### '):
-                    # 处理五级标题
+                    # Process level 5 title
                     title_text = line[6:].strip()
                     for char in title_text:
                         if '\u4e00' <= char <= '\u9fff':
@@ -340,7 +340,7 @@ class DocumentViewer:
                             self.text_widget.insert(tk.END, char, 'en_h5')
                     self.text_widget.insert(tk.END, '\n')
                 elif line.startswith('###### '):
-                    # 处理六级标题
+                    # Process level 6 title
                     title_text = line[7:].strip()
                     for char in title_text:
                         if '\u4e00' <= char <= '\u9fff':
@@ -349,18 +349,18 @@ class DocumentViewer:
                             self.text_widget.insert(tk.END, char, 'en_h6')
                     self.text_widget.insert(tk.END, '\n')
                 elif line == '---':
-                    # 处理水平线
-                    # 先插入一个临时的短水平线，稍后会更新
+                    # Process horizontal line
+                    # Insert a temporary short horizontal line first, will be updated later
                     self.text_widget.insert(tk.END, '─' * 10 + '\n', 'horizontal_line')
                 elif line.startswith('> '):
-                    # 处理引用文本
-                    quote_text = line[2:].strip()  # 去掉 > 和空格
-                    # 添加竖线，使用固定的小缩进
+                    # Process quoted text
+                    quote_text = line[2:].strip()  # Remove > and spaces
+                    # Add vertical line, use fixed small indent
                     self.text_widget.insert(tk.END, ' ' * 5 + '│ ', 'horizontal_line')
                     
-                    # 处理引用内的文本格式
+                    # Process text format inside quote
                     if quote_text.startswith('***') and quote_text.endswith('***'):
-                        # 粗体+斜体
+                        # Bold+Italic
                         text = quote_text[3:-3]
                         for char in text:
                             if '\u4e00' <= char <= '\u9fff':
@@ -368,7 +368,7 @@ class DocumentViewer:
                             else:
                                 self.text_widget.insert(tk.END, char, ('en_bold_italic', 'en_quote'))
                     elif quote_text.startswith('**') and quote_text.endswith('**'):
-                        # 粗体
+                        # Bold
                         text = quote_text[2:-2]
                         for char in text:
                             if '\u4e00' <= char <= '\u9fff':
@@ -377,7 +377,7 @@ class DocumentViewer:
                                 self.text_widget.insert(tk.END, char, ('en_bold', 'en_quote'))
                     elif (quote_text.startswith('_') and quote_text.endswith('_')) or \
                          (quote_text.startswith('*') and quote_text.endswith('*')):
-                        # 斜体
+                        # Italic
                         text = quote_text[1:-1]
                         for char in text:
                             if '\u4e00' <= char <= '\u9fff':
@@ -385,7 +385,7 @@ class DocumentViewer:
                             else:
                                 self.text_widget.insert(tk.END, char, ('en_italic', 'en_quote'))
                     elif quote_text.startswith('==') and quote_text.endswith('=='):
-                        # 高亮
+                        # Highlight
                         text = quote_text[2:-2]
                         for char in text:
                             if '\u4e00' <= char <= '\u9fff':
@@ -393,27 +393,27 @@ class DocumentViewer:
                             else:
                                 self.text_widget.insert(tk.END, char, ('en_highlight', 'en_quote'))
                     else:
-                        # 普通文本
+                        # Normal text
                         for char in quote_text:
                             if '\u4e00' <= char <= '\u9fff':
                                 self.text_widget.insert(tk.END, char, 'zh_quote')
                             else:
                                 self.text_widget.insert(tk.END, char, 'en_quote')
-                    self.text_widget.insert(tk.END, '\n')  # 引用块后添加换行
+                    self.text_widget.insert(tk.END, '\n')  # Add newline after quote block
                 else:
-                    # 处理普通文本中的格式
+                    # Process text format in normal text
                     def process_text(text, base_tags=()):
-                        """从内到外处理文本格式
+                        """Process text format from inside to outside
                         
                         Args:
-                            text: 要处理的文本
-                            base_tags: 基础标签元组，用于叠加效果
+                            text: Text to process
+                            base_tags: Base tag tuple, used for stacking effects
                         
                         Returns:
-                            处理后的文本会直接插入到text_widget中
+                            Processed text will be directly inserted into text_widget
                         """
                         def apply_format(text, tags):
-                            """应用格式到文本"""
+                            """Apply format to text"""
                             for char in text:
                                 char_tags = []
                                 if '\u4e00' <= char <= '\u9fff':
@@ -421,8 +421,8 @@ class DocumentViewer:
                                 else:
                                     base = 'en'
                                 
-                                # 处理组合标签
-                                tag_combination = '_'.join(sorted(tags))  # 对标签进行排序，确保一致性
+                                # Process tag combination
+                                tag_combination = '_'.join(sorted(tags))  # Sort tags to ensure consistency
                                 if tag_combination:
                                     char_tags.append(f'{base}_{tag_combination}')
                                 else:
@@ -430,20 +430,20 @@ class DocumentViewer:
                                 
                                 self.text_widget.insert(tk.END, char, tuple(char_tags))
 
-                        # 处理文本中的格式
+                        # Process text format
                         def process_formats(text, current_tags):
-                            """处理文本中的格式"""
-                            # 尝试匹配不同的格式
+                            """Process text format"""
+                            # Try to match different formats
                             bold_match = re.search(r'\*\*(.*?)\*\*', text)
                             highlight_match = re.search(r'==(.*?)==', text)
-                            italic_match = re.search(r'[*_](.*?)[*_]', text)  # 匹配 *text* 或 _text_
+                            italic_match = re.search(r'[*_](.*?)[*_]', text)  # Match *text* or _text_
 
                             if not any([bold_match, highlight_match, italic_match]):
-                                # 如果没有找到任何格式标记，直接输出文本
+                                # If no format mark is found, output text directly
                                 apply_format(text, current_tags)
                                 return
 
-                            # 找到的格式标记中，选择最先出现的
+                            # Select the first found in the found format marks
                             matches = []
                             if bold_match:
                                 matches.append(('bold', bold_match))
@@ -452,93 +452,93 @@ class DocumentViewer:
                             if italic_match:
                                 matches.append(('italic', italic_match))
 
-                            # 按照起始位置排序
+                            # Sort by start position
                             matches.sort(key=lambda x: x[1].start())
                             format_type, match = matches[0]
 
-                            # 处理格式标记之前的文本
+                            # Process text before format mark
                             if match.start() > 0:
                                 apply_format(text[:match.start()], current_tags)
 
-                            # 处理带格式的文本
+                            # Process text with format
                             inner_text = match.group(1)
                             process_formats(inner_text, current_tags + [format_type])
 
-                            # 处理格式标记之后的文本
+                            # Process text after format mark
                             if match.end() < len(text):
                                 process_formats(text[match.end():], current_tags)
 
-                        # 开始处理文本
+                        # Start processing text
                         process_formats(text, [])
 
-                    # 处理每一行
+                    # Process each line
                     process_text(line)
-                    if line:  # 如果不是空行，添加换行符
+                    if line:  # If not empty line, add newline
                         self.text_widget.insert(tk.END, '\n')
             
-            self.text_widget.config(state=tk.DISABLED)  # 重新禁用编辑
+            self.text_widget.config(state=tk.DISABLED)  # Re-disable editing
             
-            # 绑定键盘事件
+            # Bind keyboard events
             self.bind_keyboard_events()
             
-            # 确保透明度设置正确
+            # Ensure opacity setting is correct
             self.window.attributes('-alpha', self.OPACITY_LEVELS[self.current_opacity_index])
             
-            # 更新加载状态
+            # Update loading status
             self.loading_window.update_progress(4, 4, "Complete")
             
-            # 确保最小显示时间
+            # Ensure minimum display time
             self.loading_window.ensure_minimum_time()
             
-            # 显示主窗口
+            # Show main window
             self.window.deiconify()
             
-            # 销毁加载窗口
+            # Destroy loading window
             self.loading_window.destroy()
             
-            # 更新窗口标题
+            # Update window title
             self.update_window_title()
             
-            # 设置窗口在最前面显示并将焦点设置到文本区域
+            # Set window to front and focus to text area
             self.window.lift()
             self.window.focus_force()
-            self.text_widget.focus_set()  # 将焦点设置到文本区域
+            self.text_widget.focus_set()  # Focus to text area
             
-            # 等待窗口完全渲染，然后更新水平线长度
-            # 使用多次尝试确保窗口完全渲染
+            # Wait for window to fully render before updating horizontal line length
+            # Use multiple attempts to ensure window fully renders
             self.window.after(100, self.update_horizontal_lines)
             self.window.after(300, self.update_horizontal_lines)
             self.window.after(500, self.update_horizontal_lines)
             
         except Exception as e:
-            # 如果出现错误，确保关闭加载窗口
+            # If error occurs, ensure closing loading window
             if hasattr(self, 'loading_window'):
                 self.loading_window.destroy()
-            messagebox.showerror("打开文件失败", f"无法打开文件 {os.path.basename(self.file_path)}:\n{str(e)}")
+            messagebox.showerror("Failed to open file", f"Cannot open file {os.path.basename(self.file_path)}:\n{str(e)}")
             self.close_window()
 
     def create_text_widget(self) -> None:
-        """创建文本框"""
-        # 创建文本框
+        """Create text widget"""
+        # Create text widget
         self.text_widget = tk.Text(
             self.window,
-            font=('Noto Sans SC', self.current_font_size),  # 默认使用中文字体
-            bg='#1a1a1a',  # 深色背景
-            fg='#ffffff',  # 白色文字
-            insertbackground='#ffffff',  # 白色光标
-            wrap=tk.WORD,  # 按词换行
-            padx=40,  # 左右内边距
-            pady=40,  # 上下内边距
-            spacing1=8,  # 段落间距
-            cursor='arrow'  # 使用箭头光标
+            font=('Noto Sans SC', self.current_font_size),  # Default use Chinese font
+            bg='#1a1a1a',  # Dark background
+            fg='#ffffff',  # White text
+            insertbackground='#ffffff',  # White cursor
+            wrap=tk.WORD,  # Word wrap
+            padx=40,  # Left and right inner padding
+            pady=40,  # Top and bottom inner padding
+            spacing1=8,  # Paragraph spacing
+            cursor='arrow'  # Use arrow cursor
         )
         self.text_widget.pack(expand=True, fill='both')
         
-        # 配置基本标签
+        # Configure basic tag
         self.text_widget.tag_configure('zh', font=('Noto Sans SC', self.current_font_size))
         self.text_widget.tag_configure('en', font=('Inter', self.current_font_size))
         
-        # 配置单一效果标签
+        # Configure single effect tag
         self.text_widget.tag_configure('zh_bold', font=('Noto Sans SC', self.current_font_size, 'bold'))
         self.text_widget.tag_configure('en_bold', font=('Inter', self.current_font_size, 'bold'))
         
@@ -548,7 +548,7 @@ class DocumentViewer:
         self.text_widget.tag_configure('zh_highlight', font=('Noto Sans SC', self.current_font_size), background='#404040')
         self.text_widget.tag_configure('en_highlight', font=('Inter', self.current_font_size), background='#404040')
         
-        # 配置组合效果标签
+        # Configure combined effect tag
         self.text_widget.tag_configure('zh_bold_highlight', font=('Noto Sans SC', self.current_font_size, 'bold'), background='#404040')
         self.text_widget.tag_configure('en_bold_highlight', font=('Inter', self.current_font_size, 'bold'), background='#404040')
         
@@ -561,104 +561,104 @@ class DocumentViewer:
         self.text_widget.tag_configure('zh_bold_italic_highlight', font=('Noto Sans SC', self.current_font_size, 'bold italic'), background='#404040')
         self.text_widget.tag_configure('en_bold_italic_highlight', font=('Inter', self.current_font_size, 'bold italic'), background='#404040')
         
-        # 配置其他标签
+        # Configure other tags
         self.text_widget.tag_configure('horizontal_line', font=('Inter', self.current_font_size), foreground='#666666')
         
-        # 配置引用标签
+        # Configure quote tag
         self.text_widget.tag_configure('zh_quote', font=('Noto Sans SC', self.current_font_size, 'bold'), 
                                      lmargin1=20, lmargin2=20)
         self.text_widget.tag_configure('en_quote', font=('Inter', self.current_font_size, 'bold'), 
                                      lmargin1=20, lmargin2=20)
         
-        # 配置各级标题标签
+        # Configure level title tags
         for level in range(1, 7):
             heading_size = self.get_heading_font_size(level)
             self.text_widget.tag_configure(f'zh_h{level}', font=('Noto Sans SC', heading_size, 'bold'))
             self.text_widget.tag_configure(f'en_h{level}', font=('Inter', heading_size, 'bold'))
         
-        # 禁用文本编辑
+        # Disable text editing
         self.text_widget.config(state=tk.DISABLED)
         
-        # 创建滚动条
+        # Create scrollbar
         scrollbar = ttk.Scrollbar(self.window, orient=tk.VERTICAL, command=self.text_widget.yview)
         scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
         
-        # 配置文本框的滚动
+        # Configure text widget scroll
         self.text_widget.configure(yscrollcommand=scrollbar.set)
         
-        # 绑定窗口大小改变事件
+        # Bind window size change event
         self.window.bind('<Configure>', self.on_window_resize)
 
     def update_window_title(self) -> None:
-        """更新窗口标题，包含文件名、字体大小、滚动速度和透明度信息"""
+        """Update window title, including file name, font size, scroll speed, and opacity information"""
         speed_multiplier = self.SCROLL_SPEEDS[self.current_speed_index]
         opacity_percentage = int(self.OPACITY_LEVELS[self.current_opacity_index] * 100)
         title = f"My Tempo - {os.path.basename(self.file_path)} - Size: {self.current_font_size}px (←→) - Speed: {speed_multiplier}x (+-) - Opacity: {opacity_percentage}% (*/)"
         self.window.title(title)
 
     def calculate_horizontal_line_length(self) -> int:
-        """计算水平线的长度，基于文本区域的宽度"""
+        """Calculate horizontal line length based on text area width"""
         try:
-            # 获取文本区域的宽度（像素）
+            # Get text area width (pixels)
             text_width = self.text_widget.winfo_width()
             
-            # 减去左右内边距（padx=40，所以总共80像素）
+            # Subtract left and right inner padding (padx=40, so total 80 pixels)
             available_width = text_width - 80
             
-            # 估算单个字符的宽度
-            # 使用tkinter的font.measure方法来获取准确的字符宽度
+            # Estimate single character width
+            # Use tkinter's font.measure method to get accurate character width
             font = tkFont.Font(family='Inter', size=self.current_font_size)
             char_width = font.measure('─')
             
-            # 计算可以容纳的字符数量
+            # Calculate number of characters that can fit
             if char_width > 0:
                 line_length = max(1, int(available_width / char_width))
             else:
-                line_length = 60  # 默认值
+                line_length = 60  # Default value
                 
             return line_length
         except:
-            # 如果计算失败，返回默认值
+            # If calculation fails, return default value
             return 60
 
     def get_heading_font_size(self, level: int) -> int:
-        """根据标题级别计算字体大小"""
+        """Calculate font size based on title level"""
         multipliers = {1: 2.0, 2: 1.5, 3: 1.25, 4: 1.1, 5: 1.0, 6: 0.9}
         return int(self.current_font_size * multipliers.get(level, 1.0))
 
     def handle_left_key(self, event: tk.Event) -> str:
-        """处理左键事件"""
+        """Handle left key event"""
         self.decrease_font_size()
         return 'break'
 
     def handle_right_key(self, event: tk.Event) -> str:
-        """处理右键事件"""
+        """Handle right key event"""
         self.increase_font_size()
         return 'break'
 
     def decrease_font_size(self) -> None:
-        """减小字体大小"""
+        """Decrease font size"""
         if self.current_font_size > 20:
             self.current_font_size = next(size for size in reversed(self.FONT_SIZES) if size < self.current_font_size)
             self.update_font_size()
-            # 保存字体大小设置
+            # Save font size setting
             self.config.set("font_size", self.current_font_size)
 
     def increase_font_size(self) -> None:
-        """增加字体大小"""
+        """Increase font size"""
         if self.current_font_size < 72:
             self.current_font_size = next(size for size in self.FONT_SIZES if size > self.current_font_size)
             self.update_font_size()
-            # 保存字体大小设置
+            # Save font size setting
             self.config.set("font_size", self.current_font_size)
 
     def update_font_size(self) -> None:
-        """更新字体大小"""
+        """Update font size"""
         if hasattr(self, 'text_widget'):
-            # 保存当前滚动位置
+            # Save current scroll position
             current_position = self.text_widget.yview()
             
-            # 更新字体大小
+            # Update font size
             self.text_widget.configure(font=('Noto Sans SC', self.current_font_size))
             self.text_widget.tag_configure('zh', font=('Noto Sans SC', self.current_font_size))
             self.text_widget.tag_configure('en', font=('Inter', self.current_font_size))
@@ -671,107 +671,107 @@ class DocumentViewer:
             self.text_widget.tag_configure('zh_highlight', font=('Noto Sans SC', self.current_font_size), background='#404040')
             self.text_widget.tag_configure('en_highlight', font=('Inter', self.current_font_size), background='#404040')
             
-            # 更新引用样式
+            # Update quote style
             self.text_widget.tag_configure('zh_quote', font=('Noto Sans SC', self.current_font_size, 'bold'), 
                                          lmargin1=20, lmargin2=20)
             self.text_widget.tag_configure('en_quote', font=('Inter', self.current_font_size, 'bold'), 
                                          lmargin1=20, lmargin2=20)
             
-            # 更新各级标题标签
+            # Update level title tags
             for level in range(1, 7):
                 heading_size = self.get_heading_font_size(level)
                 self.text_widget.tag_configure(f'zh_h{level}', font=('Noto Sans SC', heading_size, 'bold'))
                 self.text_widget.tag_configure(f'en_h{level}', font=('Inter', heading_size, 'bold'))
             
-            # 恢复滚动位置
+            # Restore scroll position
             self.text_widget.yview_moveto(current_position[0])
             
-            # 更新窗口标题
+            # Update window title
             self.update_window_title()
 
     def center_window(self) -> None:
-        """将窗口居中显示（仅在需要重新居中时使用，如改变窗口大小后）"""
+        """Center window display (only used when need to center again, like when window size changes)"""
         self.window.update_idletasks()
         width = self.window.winfo_width()
         height = self.window.winfo_height()
         
-        # 获取屏幕尺寸
+        # Get screen dimensions
         screen_width = self.window.winfo_screenwidth()
         screen_height = self.window.winfo_screenheight()
         
-        # 计算窗口位置使其居中
+        # Calculate window position to center it
         x = (screen_width - width) // 2
         y = (screen_height - height) // 2
         
-        # 设置窗口位置
+        # Set window position
         self.window.geometry(f'{width}x{height}+{x}+{y}')
 
     def bind_keyboard_events(self) -> None:
-        """绑定所有键盘事件"""
-        # 禁用文本框的默认左右键绑定，并重新绑定为字体大小调整
+        """Bind all keyboard events"""
+        # Disable text widget default left and right key bindings, and rebind for font size adjustment
         self.text_widget.bind('<Left>', self.handle_left_key)
         self.text_widget.bind('<Right>', self.handle_right_key)
         
-        # 窗口级别的快捷键
+        # Window level shortcut keys
         self.window.bind('<Escape>', lambda e: self.close_window())
         self.window.bind('<Control-w>', lambda e: self.close_window())
         
-        # 滚动速度调整
-        self.window.bind('<plus>', self.increase_scroll_speed)  # +键
-        self.window.bind('<minus>', self.decrease_scroll_speed)  # -键
+        # Scroll speed adjustment
+        self.window.bind('<plus>', self.increase_scroll_speed)  # + key
+        self.window.bind('<minus>', self.decrease_scroll_speed)  # - key
 
-        # 透明度调整
-        self.window.bind('<asterisk>', self.increase_opacity)  # *键
-        self.window.bind('<slash>', self.decrease_opacity)     # /键
+        # Opacity adjustment
+        self.window.bind('<asterisk>', self.increase_opacity)  # * key
+        self.window.bind('<slash>', self.decrease_opacity)     # / key
         
-        # 文本框级别的导航键
+        # Text widget level navigation keys
         self.text_widget.bind('<Up>', self.scroll_up)
-        self.text_widget.bind('<Down>', self.start_smooth_scroll)  # 按下时开始滚动
-        self.text_widget.bind('<KeyRelease-Down>', self.stop_smooth_scroll)  # 释放时停止滚动
+        self.text_widget.bind('<Down>', self.start_smooth_scroll)  # Press to start scrolling
+        self.text_widget.bind('<KeyRelease-Down>', self.stop_smooth_scroll)  # Release to stop scrolling
         self.text_widget.bind('<Prior>', self.page_up)  # Page Up
         self.text_widget.bind('<Next>', self.page_down)  # Page Down
         self.text_widget.bind('<Home>', self.go_to_start)  # Home
         self.text_widget.bind('<End>', self.go_to_end)  # End
 
     def scroll_up(self, event: tk.Event) -> str:
-        """向上滚动"""
+        """Scroll up"""
         self.text_widget.yview_scroll(-1, 'units')
-        return 'break'  # 阻止默认的光标移动行为
+        return 'break'  # Prevent default cursor movement behavior
         
     def scroll_down(self, event: tk.Event) -> str:
-        """向下滚动"""
+        """Scroll down"""
         self.text_widget.yview_scroll(1, 'units')
-        return 'break'  # 阻止默认的光标移动行为
+        return 'break'  # Prevent default cursor movement behavior
         
     def page_up(self, event: tk.Event) -> str:
-        """向上翻页"""
+        """Scroll up page"""
         self.text_widget.yview_scroll(-1, 'pages')
-        return 'break'  # 阻止默认的光标移动行为
+        return 'break'  # Prevent default cursor movement behavior
         
     def page_down(self, event: tk.Event) -> str:
-        """向下翻页"""
+        """Scroll down page"""
         self.text_widget.yview_scroll(1, 'pages')
-        return 'break'  # 阻止默认的光标移动行为
+        return 'break'  # Prevent default cursor movement behavior
         
     def go_to_start(self, event: tk.Event) -> str:
-        """跳转到开头"""
+        """Jump to start"""
         self.text_widget.yview_moveto(0)
-        return 'break'  # 阻止默认的光标移动行为
+        return 'break'  # Prevent default cursor movement behavior
         
     def go_to_end(self, event: tk.Event) -> str:
-        """跳转到结尾"""
+        """Jump to end"""
         self.text_widget.yview_moveto(1)
-        return 'break'  # 阻止默认的光标移动行为
+        return 'break'  # Prevent default cursor movement behavior
 
     def start_smooth_scroll(self, event: tk.Event = None) -> str:
-        """开始平滑滚动"""
+        """Start smooth scroll"""
         if not self.is_scrolling:
             self.is_scrolling = True
             self.smooth_scroll()
         return 'break'
 
     def stop_smooth_scroll(self, event: tk.Event = None) -> str:
-        """停止平滑滚动"""
+        """Stop smooth scroll"""
         self.is_scrolling = False
         if self.scroll_id:
             self.window.after_cancel(self.scroll_id)
@@ -779,14 +779,14 @@ class DocumentViewer:
         return 'break'
 
     def smooth_scroll(self) -> None:
-        """执行平滑滚动"""
+        """Execute smooth scroll"""
         if self.is_scrolling:
-            # 获取当前滚动位置
+            # Get current scroll position
             current_pos = self.text_widget.yview()[0]
             
-            # 如果还没到底部，继续滚动
+            # If not at bottom, continue scrolling
             if current_pos < 1.0:
-                # 使用当前速度倍率计算实际滚动速度
+                # Use current speed multiplier to calculate actual scroll speed
                 speed_multiplier = self.SCROLL_SPEEDS[self.current_speed_index]
                 current_speed = self.BASE_SPEED * speed_multiplier
                 self.text_widget.yview_moveto(current_pos + current_speed)
@@ -795,19 +795,19 @@ class DocumentViewer:
                 self.stop_smooth_scroll()
 
     def close_window(self) -> None:
-        """关闭窗口并显示主窗口"""
-        # 确保停止所有滚动
+        """Close window and show main window"""
+        # Ensure stop all scrolling
         self.stop_smooth_scroll()
         
-        # 保存窗口大小
+        # Save window size
         try:
-            # 获取当前窗口大小
+            # Get current window size
             geometry = self.window.geometry()
-            # 解析几何字符串 (例如: "900x700+100+100")
-            size_part = geometry.split('+')[0]  # 获取 "900x700" 部分
+            # Parse geometry string (e.g., "900x700+100+100")
+            size_part = geometry.split('+')[0]  # Get "900x700" part
             width, height = map(int, size_part.split('x'))
             
-            # 保存窗口大小设置
+            # Save window size setting
             self.config.update_multiple({
                 "window_width": width,
                 "window_height": height
@@ -816,82 +816,82 @@ class DocumentViewer:
             print(f"Error saving window size: {e}")
         
         self.window.destroy()
-        # 重新显示主窗口
+        # Re-show main window
         self.parent.deiconify()
 
     def increase_scroll_speed(self, event: tk.Event = None) -> str:
-        """增加滚动速度"""
+        """Increase scroll speed"""
         if self.current_speed_index < len(self.SCROLL_SPEEDS) - 1:
             self.current_speed_index += 1
             self.update_window_title()
-            # 保存速度设置
+            # Save speed setting
             self.config.set("speed_index", self.current_speed_index)
         return 'break'
 
     def decrease_scroll_speed(self, event: tk.Event = None) -> str:
-        """减小滚动速度"""
+        """Decrease scroll speed"""
         if self.current_speed_index > 0:
             self.current_speed_index -= 1
             self.update_window_title()
-            # 保存速度设置
+            # Save speed setting
             self.config.set("speed_index", self.current_speed_index)
         return 'break'
 
     def increase_opacity(self, event: tk.Event = None) -> str:
-        """增加不透明度"""
+        """Increase opacity"""
         if self.current_opacity_index > 0:
             self.current_opacity_index -= 1
             self.window.attributes('-alpha', self.OPACITY_LEVELS[self.current_opacity_index])
             self.update_window_title()
-            # 保存透明度设置
+            # Save opacity setting
             self.config.set("opacity_index", self.current_opacity_index)
         return 'break'
 
     def decrease_opacity(self, event: tk.Event = None) -> str:
-        """减小不透明度"""
+        """Decrease opacity"""
         if self.current_opacity_index < len(self.OPACITY_LEVELS) - 1:
             self.current_opacity_index += 1
             self.window.attributes('-alpha', self.OPACITY_LEVELS[self.current_opacity_index])
             self.update_window_title()
-            # 保存透明度设置
+            # Save opacity setting
             self.config.set("opacity_index", self.current_opacity_index)
         return 'break'
 
     def on_window_resize(self, event: Optional[tk.Event] = None) -> None:
-        """处理窗口大小改变事件"""
+        """Handle window size change event"""
         if event and event.widget == self.window:
-            # 更新所有水平线
+            # Update all horizontal lines
             self.update_horizontal_lines()
 
     def update_horizontal_lines(self) -> None:
-        """更新所有水平线的长度"""
+        """Update length of all horizontal lines"""
         try:
-            # 获取所有带有 horizontal_line 标签的范围
+            # Get all ranges with horizontal_line tag
             ranges = self.text_widget.tag_ranges('horizontal_line')
             if not ranges:
                 return
                 
-            # 计算新的水平线长度
+            # Calculate new horizontal line length
             line_length = self.calculate_horizontal_line_length()
             
-            # 临时启用编辑
+            # Temporarily enable editing
             self.text_widget.config(state=tk.NORMAL)
             
-            # 每次处理两个索引（开始和结束）
+            # Process two indices at a time (start and end)
             for i in range(0, len(ranges), 2):
                 start = ranges[i]
                 end = ranges[i + 1]
                 
-                # 获取当前行的内容
+                # Get content of current line
                 current_line = self.text_widget.get(start, end).strip()
                 
-                # 只处理水平线（由 ─ 字符组成的行）
+                # Process only horizontal lines (lines composed of ─ characters)
                 if all(c == '─' for c in current_line):
-                    # 替换为新长度的水平线
+                    # Replace with new length horizontal line
                     self.text_widget.delete(start, end)
                     self.text_widget.insert(start, '─' * line_length, 'horizontal_line')
             
-            # 重新禁用编辑
+            # Re-disable editing
             self.text_widget.config(state=tk.DISABLED)
         except Exception as e:
             print(f"Error updating horizontal lines: {e}")
@@ -903,11 +903,11 @@ class MyTempoApp:
         self.root.withdraw()
         self.root.title("My Tempo")
         
-        # 设置主窗口大小
+        # Set main window size
         window_width = 600
         window_height = 450
         
-        # 设置窗口大小
+        # Set window size
         self.root.geometry(f"{window_width}x{window_height}")
         self.root.configure(bg='#f5f5f7')
         
@@ -931,23 +931,23 @@ class MyTempoApp:
         # Close loading window and show main window
         loading_window.destroy()
         self.root.deiconify()
-        self.root.focus_force()  # 确保主窗口获得焦点
+        self.root.focus_force()  # Ensure main window gets focus
         
     def center_window(self) -> None:
-        """将窗口居中显示"""
+        """Center window display"""
         self.root.update_idletasks()
         width = self.root.winfo_width()
         height = self.root.winfo_height()
         
-        # 获取屏幕尺寸
+        # Get screen dimensions
         screen_width = self.root.winfo_screenwidth()
         screen_height = self.root.winfo_screenheight()
         
-        # 计算窗口位置使其居中
+        # Calculate window position to center it
         x = (screen_width - width) // 2
         y = (screen_height - height) // 2
         
-        # 设置窗口位置
+        # Set window position
         self.root.geometry(f'{width}x{height}+{x}+{y}')
         
     def get_font(self, is_chinese: bool = False, size: int = 12, weight: str = 'normal') -> Tuple[str, int, str]:
@@ -1155,18 +1155,18 @@ class MyTempoApp:
                 )
         
         if valid_files:
-            # 处理有效的Markdown文件 - 只打开第一个文件
+            # Process valid Markdown files - only open first file
             try:
                 DocumentViewer(self.root, valid_files[0])
                 if len(valid_files) > 1:
                     messagebox.showinfo(
-                        "提示",
-                        f"检测到{len(valid_files)}个文件，当前只打开第一个文件：\n{os.path.basename(valid_files[0])}"
+                        "Notice",
+                        f"Detected {len(valid_files)} files, currently only opening first file: \n{os.path.basename(valid_files[0])}"
                     )
             except Exception as e:
                 messagebox.showerror(
-                    "打开文件失败",
-                    f"无法打开文件 {os.path.basename(valid_files[0])}:\n{str(e)}"
+                    "Failed to open file",
+                    f"Cannot open file {os.path.basename(valid_files[0])}:\n{str(e)}"
                 )
             
     def run(self) -> None:
