@@ -1,17 +1,51 @@
-# My Tempo
+# MyTempo
 
-A Markdown document uploader with Apple-style design.
+A modern, elegant Markdown reader application with smooth scrolling and beautiful typography.
 
-## System Requirements
+## Features
 
-- Python 3.7+
-- Windows 10/11
+- **Beautiful Typography**: Dual-font system with Noto Sans SC for Chinese and Inter for English
+- **Smooth Scrolling**: Adjustable scroll speed with keyboard controls
+- **Opacity Control**: Adjustable window transparency
+- **Font Size Control**: Dynamic font size adjustment
+- **Drag & Drop**: Easy file loading with drag and drop support
+- **Markdown Support**: Full Markdown syntax support including headings, quotes, and formatting
+- **Settings Persistence**: User preferences are automatically saved
+
+## Project Structure
+
+```
+MyTempo/
+├── src/                          # Source code directory
+│   ├── main.py                   # Application entry point
+│   ├── app/                      # Application components
+│   │   ├── mytempo_app.py        # Main application class
+│   │   └── document_viewer.py    # Document viewer component
+│   ├── ui/                       # User interface components
+│   │   ├── loading_window.py     # Loading window
+│   │   ├── upload_interface.py   # File upload interface
+│   │   └── styles.py             # UI styles and themes
+│   ├── core/                     # Core functionality
+│   │   ├── config.py             # Configuration management
+│   │   ├── text_processor.py     # Markdown text processing
+│   │   └── scroll_manager.py     # Scroll management
+│   └── utils/                    # Utilities
+│       ├── constants.py          # Application constants
+│       └── font_loader.py        # Font loading utilities
+├── fonts/                        # Font files
+├── run.py                        # Launch script
+├── main.py                       # Legacy entry point (deprecated)
+├── requirements.txt              # Python dependencies
+├── README.md                     # This file
+├── LICENSE                       # License file
+└── user_settings.json            # User settings (auto-generated)
+```
 
 ## Installation
 
-1. Clone repository:
+1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/mytempo.git
+git clone https://github.com/XujunNoahWang/mytempo.git
 cd mytempo
 ```
 
@@ -20,43 +54,98 @@ cd mytempo
 pip install -r requirements.txt
 ```
 
-## Running
-
+3. Run the application:
 ```bash
-python main.py
+python run.py
 ```
 
-## Features
+## Usage
 
-- 🎨 Beautiful Apple-style interface design
-  - Inter font for English text
-  - Noto Sans SC font for Chinese text
-  - Apple design guidelines compliant colors and spacing
-- 📄 Multiple file upload methods
-  - Drag and drop support
-  - Button click file selection
-- ✨ Elegant interaction experience
-  - Smooth animations
-  - Real-time visual feedback
-  - Clear error messages
-- 🔍 Strict file format validation
-  - Supports .md and .markdown formats
-  - Automatic non-Markdown file filtering
+### File Loading
+- Drag and drop Markdown files onto the application window
+- Click "Browse Files" to select files manually
+- Only `.md` and `.markdown` files are supported
 
-## Development Notes
+### Keyboard Controls
 
-- Built with Python's tkinter and tkinterdnd2
-- Object-oriented programming approach
-- Type hints support
-- PEP 8 code style compliance
+#### Document Navigation
+- **Up/Down Arrow**: Scroll up/down
+- **Page Up/Page Down**: Scroll by page
+- **Home/End**: Jump to start/end of document
+- **Hold Down Arrow**: Start smooth scrolling
+- **Release Down Arrow**: Stop smooth scrolling
 
-## Upcoming Features
+#### Display Settings
+- **Left/Right Arrow**: Decrease/increase font size
+- **+/-**: Increase/decrease scroll speed
+- ***/**: Increase/decrease window opacity
+- **Escape** or **Ctrl+W**: Close document viewer
 
-- [ ] Markdown file preview
-- [ ] File content editing
-- [ ] Export to other formats
-- [ ] Auto-save functionality
+### Features
+
+#### Typography
+- Automatic font selection based on character type
+- Chinese characters use Noto Sans SC
+- English characters use Inter
+- Support for bold, italic, and highlight formatting
+
+#### Markdown Support
+- Headings (H1-H6)
+- Bold text (`**text**`)
+- Italic text (`*text*` or `_text_`)
+- Highlighted text (`==text==`)
+- Quoted text (`> text`)
+- Horizontal lines (`---`)
+
+#### Settings
+- Font size (20px to 72px)
+- Scroll speed (1x to 5x)
+- Window opacity (10% to 100%)
+- Window size and position
+
+## Development
+
+### Code Structure
+
+The application follows clean architecture principles:
+
+- **Separation of Concerns**: Each module has a single responsibility
+- **Dependency Injection**: Components are loosely coupled
+- **Configuration Management**: Centralized settings management
+- **Error Handling**: Comprehensive error handling throughout
+
+### Key Components
+
+- **MyTempoApp**: Main application coordinator
+- **DocumentViewer**: Document display and interaction
+- **UploadInterface**: File selection and drag-drop
+- **TextProcessor**: Markdown parsing and formatting
+- **ScrollManager**: Scroll behavior management
+- **StyleManager**: UI styling and theming
+
+### Adding Features
+
+1. **New UI Components**: Add to `src/ui/`
+2. **Core Functionality**: Add to `src/core/`
+3. **Utilities**: Add to `src/utils/`
+4. **Constants**: Update `src/utils/constants.py`
+
+## Requirements
+
+- Python 3.7+
+- tkinter (usually included with Python)
+- tkinterdnd2
 
 ## License
 
-MIT License 
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Version History
+
+- **v0.4.3**: Complete code refactoring with modular architecture
+- **v0.4.2**: Fixed horizontal line rendering
+- **v0.4.1**: Improved text processing
+- **v0.4.0**: Added opacity control
+- **v0.3.0**: Added scroll speed control
+- **v0.2.0**: Added font size control
+- **v0.1.0**: Initial release with basic functionality 
