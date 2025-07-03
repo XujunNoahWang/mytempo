@@ -1,7 +1,7 @@
 {
-  "font_size": 32,
-  "speed_index": 2,
-  "opacity_index": 2,
-  "window_width": 900,
+  "font_size": 24,
+  "speed_index": 0,
+  "opacity_index": 0,
+  "window_width": 1281,
   "window_height": 700
 }
