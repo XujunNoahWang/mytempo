@@ -9,7 +9,7 @@ import json
 from typing import List, Tuple, Optional, Dict, Any
 from font_loader import load_fonts
 
-__version__ = '0.4.1'  # 更新版本号：移除窗口最小尺寸限制，修复水平线渲染问题
+__version__ = '0.4.2'  # 更新版本号：完全修复水平线渲染问题
 
 class UserConfig:
     """用户配置管理类"""
@@ -183,7 +183,7 @@ class LoadingWindow:
 class DocumentViewer:
     """文档查看器类"""
     # 版本号
-    VERSION = "0.4.1"  # 移除了窗口最小尺寸限制，修复水平线渲染问题
+    VERSION = "0.4.2"  # 完全修复水平线渲染问题
     
     # 支持的字体大小
     FONT_SIZES = [20, 22, 24, 28, 32, 36, 48, 60, 72]
@@ -350,8 +350,8 @@ class DocumentViewer:
                     self.text_widget.insert(tk.END, '\n')
                 elif line == '---':
                     # 处理水平线
-                    line_length = self.calculate_horizontal_line_length()
-                    self.text_widget.insert(tk.END, '─' * line_length + '\n', 'horizontal_line')
+                    # 先插入一个临时的短水平线，稍后会更新
+                    self.text_widget.insert(tk.END, '─' * 10 + '\n', 'horizontal_line')
                 elif line.startswith('> '):
                     # 处理引用文本
                     quote_text = line[2:].strip()  # 去掉 > 和空格
@@ -503,6 +503,12 @@ class DocumentViewer:
             self.window.lift()
             self.window.focus_force()
             self.text_widget.focus_set()  # 将焦点设置到文本区域
+            
+            # 等待窗口完全渲染，然后更新水平线长度
+            # 使用多次尝试确保窗口完全渲染
+            self.window.after(100, self.update_horizontal_lines)
+            self.window.after(300, self.update_horizontal_lines)
+            self.window.after(500, self.update_horizontal_lines)
             
         except Exception as e:
             # 如果出现错误，确保关闭加载窗口
