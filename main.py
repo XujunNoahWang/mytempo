@@ -19,8 +19,8 @@ class UserConfig:
             "font_size": 24,
             "speed_index": 0,
             "opacity_index": 5,
-            "window_width": 900,
-            "window_height": 700
+            "window_width": 800,
+            "window_height": 600
         }
         self.settings = self.load_settings()
     
@@ -76,10 +76,16 @@ class LoadingWindow:
         # Set window size and position
         window_width = 400
         window_height = 180  # 增加高度以确保文本完全显示
+        
+        # 获取屏幕尺寸
         screen_width = self.root.winfo_screenwidth()
         screen_height = self.root.winfo_screenheight()
+        
+        # 计算窗口位置使其居中
         x = (screen_width - window_width) // 2
         y = (screen_height - window_height) // 2
+        
+        # 设置窗口大小和位置
         self.root.geometry(f"{window_width}x{window_height}+{x}+{y}")
         
         # Set window style
@@ -93,7 +99,7 @@ class LoadingWindow:
             highlightbackground='#e5e5e7',
             highlightthickness=1
         )
-        self.frame.place(relx=0.5, rely=0.5, anchor='center', relwidth=0.9, relheight=0.85)  # 增加frame高度比例
+        self.frame.place(relx=0.5, rely=0.5, anchor='center', relwidth=0.9, relheight=0.85)
         
         # Loading text
         self.loading_label = tk.Label(
@@ -177,7 +183,7 @@ class LoadingWindow:
 class DocumentViewer:
     """文档查看器类"""
     # 版本号
-    VERSION = "0.3.2"  # 移除了小字体选项，确保滚动功能稳定
+    VERSION = "0.3.8"  # 统一了窗口居中逻辑
     
     # 支持的字体大小
     FONT_SIZES = [20, 22, 24, 28, 32, 36, 48, 60, 72]
@@ -192,6 +198,10 @@ class DocumentViewer:
     # 透明度相关配置
     OPACITY_LEVELS = [1.0, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1]  # 从不透明到透明
     DEFAULT_OPACITY_INDEX = 5  # 默认使用50%不透明度
+
+    # 窗口默认大小
+    DEFAULT_WINDOW_WIDTH = 800
+    DEFAULT_WINDOW_HEIGHT = 700
 
     def __init__(self, parent: tk.Tk, file_path: str) -> None:
         """初始化文档查看器"""
@@ -217,14 +227,35 @@ class DocumentViewer:
         # 隐藏主窗口
         self.parent.withdraw()
 
-        # 创建文档查看窗口
+        # 创建文档查看窗口但先不显示
         self.window = tk.Toplevel(parent)
+        self.window.withdraw()  # 先隐藏主窗口
+        
+        # 创建并显示加载界面
+        self.loading_window = LoadingWindow(self.parent, "Loading Document")  # 使用 parent 作为父窗口
+        
+        # 配置主窗口
         self.window.title(f"My Tempo - {os.path.basename(self.file_path)}")
         
-        # 从配置加载窗口大小
-        window_width = self.config.get("window_width", 900)
-        window_height = self.config.get("window_height", 700)
-        self.window.geometry(f"{window_width}x{window_height}")
+        # 从配置加载窗口大小，默认为 800x700
+        window_width = self.config.get("window_width", self.DEFAULT_WINDOW_WIDTH)
+        window_height = self.config.get("window_height", self.DEFAULT_WINDOW_HEIGHT)
+        
+        # 获取屏幕尺寸
+        screen_width = self.window.winfo_screenwidth()
+        screen_height = self.window.winfo_screenheight()
+        
+        # 计算窗口位置使其居中
+        x = (screen_width - window_width) // 2
+        y = (screen_height - window_height) // 2
+        
+        # 设置窗口大小和位置
+        self.window.geometry(f"{window_width}x{window_height}+{x}+{y}")
+        
+        # 设置最小窗口大小
+        self.window.minsize(self.DEFAULT_WINDOW_WIDTH, self.DEFAULT_WINDOW_HEIGHT)
+        
+        # 设置窗口背景色
         self.window.configure(bg='#1a1a1a')
         
         # 设置窗口置顶
@@ -235,12 +266,6 @@ class DocumentViewer:
         
         # 设置窗口关闭事件
         self.window.protocol("WM_DELETE_WINDOW", self.close_window)
-        
-        # 居中显示窗口
-        self.center_window()
-        
-        # 创建并显示加载界面
-        self.loading_window = LoadingWindow(self.window, "Loading Document")
         
         # 使用 after 方法来延迟加载文档
         self.window.after(100, self.load_document)
@@ -468,6 +493,9 @@ class DocumentViewer:
             # 确保最小显示时间
             self.loading_window.ensure_minimum_time()
             
+            # 显示主窗口
+            self.window.deiconify()
+            
             # 销毁加载窗口
             self.loading_window.destroy()
             
@@ -658,14 +686,22 @@ class DocumentViewer:
             self.update_window_title()
 
     def center_window(self) -> None:
-        """将窗口居中显示"""
+        """将窗口居中显示（仅在需要重新居中时使用，如改变窗口大小后）"""
         self.window.update_idletasks()
         width = self.window.winfo_width()
         height = self.window.winfo_height()
-        x = (self.window.winfo_screenwidth() // 2) - (width // 2)
-        y = (self.window.winfo_screenheight() // 2) - (height // 2)
-        self.window.geometry(f'{width}x{height}+{x}+{y}')
         
+        # 获取屏幕尺寸
+        screen_width = self.window.winfo_screenwidth()
+        screen_height = self.window.winfo_screenheight()
+        
+        # 计算窗口位置使其居中
+        x = (screen_width - width) // 2
+        y = (screen_height - height) // 2
+        
+        # 设置窗口位置
+        self.window.geometry(f'{width}x{height}+{x}+{y}')
+
     def bind_keyboard_events(self) -> None:
         """绑定所有键盘事件"""
         # 禁用文本框的默认左右键绑定，并重新绑定为字体大小调整
@@ -823,7 +859,13 @@ class MyTempoApp:
         self.root = tkdnd.Tk()
         self.root.withdraw()
         self.root.title("My Tempo")
-        self.root.geometry("600x450")
+        
+        # 设置主窗口大小
+        window_width = 600
+        window_height = 450
+        
+        # 设置窗口大小
+        self.root.geometry(f"{window_width}x{window_height}")
         self.root.configure(bg='#f5f5f7')
         
         # Show loading window
@@ -836,10 +878,12 @@ class MyTempoApp:
         loading_window.ensure_minimum_time()
         
         # Set up main window (before showing)
-        self.center_window()
         self.setup_styles()
         self.create_upload_interface()
         self.setup_drag_drop()
+        
+        # Center window after all components are created
+        self.center_window()
         
         # Close loading window and show main window
         loading_window.destroy()
@@ -847,12 +891,20 @@ class MyTempoApp:
         self.root.focus_force()  # 确保主窗口获得焦点
         
     def center_window(self) -> None:
-        """Center window on screen"""
+        """将窗口居中显示"""
         self.root.update_idletasks()
         width = self.root.winfo_width()
         height = self.root.winfo_height()
-        x = (self.root.winfo_screenwidth() // 2) - (width // 2)
-        y = (self.root.winfo_screenheight() // 2) - (height // 2)
+        
+        # 获取屏幕尺寸
+        screen_width = self.root.winfo_screenwidth()
+        screen_height = self.root.winfo_screenheight()
+        
+        # 计算窗口位置使其居中
+        x = (screen_width - width) // 2
+        y = (screen_height - height) // 2
+        
+        # 设置窗口位置
         self.root.geometry(f'{width}x{height}+{x}+{y}')
         
     def get_font(self, is_chinese: bool = False, size: int = 12, weight: str = 'normal') -> Tuple[str, int, str]:
