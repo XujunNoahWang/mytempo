@@ -9,7 +9,7 @@ import json
 from typing import List, Tuple, Optional, Dict, Any
 from font_loader import load_fonts
 
-__version__ = '0.3.3'  # 更新版本号：修复引用样式的对齐和缩进问题
+__version__ = '0.3.4'  # 更新版本号：支持嵌套的 Markdown 语法
 
 class UserConfig:
     """用户配置管理类"""
@@ -380,46 +380,79 @@ class DocumentViewer:
                     # 处理普通文本中的格式
                     parts = re.split(r'(\*\*\*[^*]+\*\*\*|\*\*[^*]+\*\*|_[^_]+_|\*[^*]+\*|==[^=]+==)', line)
                     for part in parts:
-                        if part.startswith('***') and part.endswith('***'):
-                            # 处理粗体+斜体文本
-                            text = part[3:-3]
-                            for char in text:
-                                if '\u4e00' <= char <= '\u9fff':
-                                    self.text_widget.insert(tk.END, char, 'zh_bold_italic')
-                                else:
-                                    self.text_widget.insert(tk.END, char, 'en_bold_italic')
-                        elif part.startswith('**') and part.endswith('**'):
-                            # 处理加粗文本
-                            text = part[2:-2]
-                            for char in text:
-                                if '\u4e00' <= char <= '\u9fff':
-                                    self.text_widget.insert(tk.END, char, 'zh_bold')
-                                else:
-                                    self.text_widget.insert(tk.END, char, 'en_bold')
-                        elif (part.startswith('_') and part.endswith('_')) or \
-                             (part.startswith('*') and part.endswith('*') and not part.startswith('**')):
-                            # 处理斜体文本
-                            text = part[1:-1]
-                            for char in text:
-                                if '\u4e00' <= char <= '\u9fff':
-                                    self.text_widget.insert(tk.END, char, 'zh_italic')
-                                else:
-                                    self.text_widget.insert(tk.END, char, 'en_italic')
-                        elif part.startswith('==') and part.endswith('=='):
-                            # 处理高亮文本
-                            text = part[2:-2]
-                            for char in text:
-                                if '\u4e00' <= char <= '\u9fff':
-                                    self.text_widget.insert(tk.END, char, 'zh_highlight')
-                                else:
-                                    self.text_widget.insert(tk.END, char, 'en_highlight')
-                        else:
-                            # 处理普通文本
-                            for char in part:
-                                if '\u4e00' <= char <= '\u9fff':
-                                    self.text_widget.insert(tk.END, char, 'zh')
-                                else:
-                                    self.text_widget.insert(tk.END, char, 'en')
+                        if part:  # 确保部分不为空
+                            # 处理高亮文本（最外层）
+                            if part.startswith('==') and part.endswith('=='):
+                                # 提取高亮内容并递归处理内部格式
+                                inner_text = part[2:-2]
+                                inner_parts = re.split(r'(\*\*\*[^*]+\*\*\*|\*\*[^*]+\*\*|_[^_]+_|\*[^*]+\*)', inner_text)
+                                for inner_part in inner_parts:
+                                    if inner_part:
+                                        if inner_part.startswith('***') and inner_part.endswith('***'):
+                                            # 处理粗体+斜体文本
+                                            text = inner_part[3:-3]
+                                            for char in text:
+                                                if '\u4e00' <= char <= '\u9fff':
+                                                    self.text_widget.insert(tk.END, char, ('zh_bold_italic', 'zh_highlight'))
+                                                else:
+                                                    self.text_widget.insert(tk.END, char, ('en_bold_italic', 'en_highlight'))
+                                        elif inner_part.startswith('**') and inner_part.endswith('**'):
+                                            # 处理加粗文本
+                                            text = inner_part[2:-2]
+                                            for char in text:
+                                                if '\u4e00' <= char <= '\u9fff':
+                                                    self.text_widget.insert(tk.END, char, ('zh_bold', 'zh_highlight'))
+                                                else:
+                                                    self.text_widget.insert(tk.END, char, ('en_bold', 'en_highlight'))
+                                        elif (inner_part.startswith('_') and inner_part.endswith('_')) or \
+                                             (inner_part.startswith('*') and inner_part.endswith('*') and not inner_part.startswith('**')):
+                                            # 处理斜体文本
+                                            text = inner_part[1:-1]
+                                            for char in text:
+                                                if '\u4e00' <= char <= '\u9fff':
+                                                    self.text_widget.insert(tk.END, char, ('zh_italic', 'zh_highlight'))
+                                                else:
+                                                    self.text_widget.insert(tk.END, char, ('en_italic', 'en_highlight'))
+                                        else:
+                                            # 处理普通文本
+                                            for char in inner_part:
+                                                if '\u4e00' <= char <= '\u9fff':
+                                                    self.text_widget.insert(tk.END, char, 'zh_highlight')
+                                                else:
+                                                    self.text_widget.insert(tk.END, char, 'en_highlight')
+                            # 处理其他格式（非高亮）
+                            elif part.startswith('***') and part.endswith('***'):
+                                # 处理粗体+斜体文本
+                                text = part[3:-3]
+                                for char in text:
+                                    if '\u4e00' <= char <= '\u9fff':
+                                        self.text_widget.insert(tk.END, char, 'zh_bold_italic')
+                                    else:
+                                        self.text_widget.insert(tk.END, char, 'en_bold_italic')
+                            elif part.startswith('**') and part.endswith('**'):
+                                # 处理加粗文本
+                                text = part[2:-2]
+                                for char in text:
+                                    if '\u4e00' <= char <= '\u9fff':
+                                        self.text_widget.insert(tk.END, char, 'zh_bold')
+                                    else:
+                                        self.text_widget.insert(tk.END, char, 'en_bold')
+                            elif (part.startswith('_') and part.endswith('_')) or \
+                                 (part.startswith('*') and part.endswith('*') and not part.startswith('**')):
+                                # 处理斜体文本
+                                text = part[1:-1]
+                                for char in text:
+                                    if '\u4e00' <= char <= '\u9fff':
+                                        self.text_widget.insert(tk.END, char, 'zh_italic')
+                                    else:
+                                        self.text_widget.insert(tk.END, char, 'en_italic')
+                            else:
+                                # 处理普通文本
+                                for char in part:
+                                    if '\u4e00' <= char <= '\u9fff':
+                                        self.text_widget.insert(tk.END, char, 'zh')
+                                    else:
+                                        self.text_widget.insert(tk.END, char, 'en')
                     if line:  # 如果不是空行，添加换行符
                         self.text_widget.insert(tk.END, '\n')
             
