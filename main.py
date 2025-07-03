@@ -9,7 +9,7 @@ import json
 from typing import List, Tuple, Optional, Dict, Any
 from font_loader import load_fonts
 
-__version__ = '0.3.4'  # 更新版本号：支持嵌套的 Markdown 语法
+__version__ = '0.3.5'  # 更新版本号：修复了嵌套格式（加粗+高亮）的显示问题
 
 class UserConfig:
     """用户配置管理类"""
@@ -378,81 +378,81 @@ class DocumentViewer:
                     self.text_widget.insert(tk.END, '\n')  # 引用块后添加换行
                 else:
                     # 处理普通文本中的格式
-                    parts = re.split(r'(\*\*\*[^*]+\*\*\*|\*\*[^*]+\*\*|_[^_]+_|\*[^*]+\*|==[^=]+==)', line)
-                    for part in parts:
-                        if part:  # 确保部分不为空
-                            # 处理高亮文本（最外层）
-                            if part.startswith('==') and part.endswith('=='):
-                                # 提取高亮内容并递归处理内部格式
-                                inner_text = part[2:-2]
-                                inner_parts = re.split(r'(\*\*\*[^*]+\*\*\*|\*\*[^*]+\*\*|_[^_]+_|\*[^*]+\*)', inner_text)
-                                for inner_part in inner_parts:
-                                    if inner_part:
-                                        if inner_part.startswith('***') and inner_part.endswith('***'):
-                                            # 处理粗体+斜体文本
-                                            text = inner_part[3:-3]
-                                            for char in text:
-                                                if '\u4e00' <= char <= '\u9fff':
-                                                    self.text_widget.insert(tk.END, char, ('zh_bold_italic', 'zh_highlight'))
-                                                else:
-                                                    self.text_widget.insert(tk.END, char, ('en_bold_italic', 'en_highlight'))
-                                        elif inner_part.startswith('**') and inner_part.endswith('**'):
-                                            # 处理加粗文本
-                                            text = inner_part[2:-2]
-                                            for char in text:
-                                                if '\u4e00' <= char <= '\u9fff':
-                                                    self.text_widget.insert(tk.END, char, ('zh_bold', 'zh_highlight'))
-                                                else:
-                                                    self.text_widget.insert(tk.END, char, ('en_bold', 'en_highlight'))
-                                        elif (inner_part.startswith('_') and inner_part.endswith('_')) or \
-                                             (inner_part.startswith('*') and inner_part.endswith('*') and not inner_part.startswith('**')):
-                                            # 处理斜体文本
-                                            text = inner_part[1:-1]
-                                            for char in text:
-                                                if '\u4e00' <= char <= '\u9fff':
-                                                    self.text_widget.insert(tk.END, char, ('zh_italic', 'zh_highlight'))
-                                                else:
-                                                    self.text_widget.insert(tk.END, char, ('en_italic', 'en_highlight'))
-                                        else:
-                                            # 处理普通文本
-                                            for char in inner_part:
-                                                if '\u4e00' <= char <= '\u9fff':
-                                                    self.text_widget.insert(tk.END, char, 'zh_highlight')
-                                                else:
-                                                    self.text_widget.insert(tk.END, char, 'en_highlight')
-                            # 处理其他格式（非高亮）
-                            elif part.startswith('***') and part.endswith('***'):
-                                # 处理粗体+斜体文本
-                                text = part[3:-3]
-                                for char in text:
-                                    if '\u4e00' <= char <= '\u9fff':
-                                        self.text_widget.insert(tk.END, char, 'zh_bold_italic')
-                                    else:
-                                        self.text_widget.insert(tk.END, char, 'en_bold_italic')
-                            elif part.startswith('**') and part.endswith('**'):
-                                # 处理加粗文本
-                                text = part[2:-2]
-                                for char in text:
-                                    if '\u4e00' <= char <= '\u9fff':
-                                        self.text_widget.insert(tk.END, char, 'zh_bold')
-                                    else:
-                                        self.text_widget.insert(tk.END, char, 'en_bold')
-                            elif (part.startswith('_') and part.endswith('_')) or \
-                                 (part.startswith('*') and part.endswith('*') and not part.startswith('**')):
-                                # 处理斜体文本
-                                text = part[1:-1]
-                                for char in text:
-                                    if '\u4e00' <= char <= '\u9fff':
-                                        self.text_widget.insert(tk.END, char, 'zh_italic')
-                                    else:
-                                        self.text_widget.insert(tk.END, char, 'en_italic')
-                            else:
-                                # 处理普通文本
-                                for char in part:
-                                    if '\u4e00' <= char <= '\u9fff':
-                                        self.text_widget.insert(tk.END, char, 'zh')
-                                    else:
-                                        self.text_widget.insert(tk.END, char, 'en')
+                    def process_text(text, base_tags=()):
+                        """从内到外处理文本格式
+                        
+                        Args:
+                            text: 要处理的文本
+                            base_tags: 基础标签元组，用于叠加效果
+                        
+                        Returns:
+                            处理后的文本会直接插入到text_widget中
+                        """
+                        def apply_format(text, tags):
+                            """应用格式到文本"""
+                            for char in text:
+                                char_tags = []
+                                if '\u4e00' <= char <= '\u9fff':
+                                    base = 'zh'
+                                else:
+                                    base = 'en'
+                                
+                                # 处理组合标签
+                                if 'bold' in tags and 'highlight' in tags:
+                                    char_tags.append(f'{base}_bold_highlight')
+                                else:
+                                    # 应用单一标签
+                                    for tag in tags:
+                                        char_tags.append(f'{base}_{tag}')
+                                
+                                # 如果没有标签，使用基本标签
+                                if not char_tags:
+                                    char_tags.append(base)
+                                
+                                self.text_widget.insert(tk.END, char, tuple(char_tags))
+
+                        # 处理文本中的格式
+                        def process_formats(text, current_tags):
+                            # 尝试匹配不同的格式
+                            bold_match = re.search(r'\*\*(.*?)\*\*', text)
+                            highlight_match = re.search(r'==(.*?)==', text)
+
+                            if not bold_match and not highlight_match:
+                                # 如果没有找到任何格式标记，直接输出文本
+                                apply_format(text, current_tags)
+                                return
+
+                            # 找到的格式标记中，选择最先出现的
+                            matches = []
+                            if bold_match:
+                                matches.append(('bold', bold_match))
+                            if highlight_match:
+                                matches.append(('highlight', highlight_match))
+
+                            # 按照起始位置排序
+                            matches.sort(key=lambda x: x[1].start())
+                            format_type, match = matches[0]
+
+                            # 处理格式标记之前的文本
+                            if match.start() > 0:
+                                apply_format(text[:match.start()], current_tags)
+
+                            # 处理带格式的文本
+                            inner_text = match.group(1)
+                            if format_type == 'bold':
+                                process_formats(inner_text, current_tags + ['bold'])
+                            else:  # highlight
+                                process_formats(inner_text, current_tags + ['highlight'])
+
+                            # 处理格式标记之后的文本
+                            if match.end() < len(text):
+                                process_formats(text[match.end():], current_tags)
+
+                        # 开始处理文本
+                        process_formats(text, [])
+
+                    # 处理每一行
+                    process_text(line)
                     if line:  # 如果不是空行，添加换行符
                         self.text_widget.insert(tk.END, '\n')
             
@@ -502,35 +502,25 @@ class DocumentViewer:
         )
         self.text_widget.pack(expand=True, fill='both')
         
-        # 配置中文字体标签
+        # 配置基本标签
         self.text_widget.tag_configure('zh', font=('Noto Sans SC', self.current_font_size))
-        # 配置英文字体标签
         self.text_widget.tag_configure('en', font=('Inter', self.current_font_size))
         
-        # 配置中文斜体标签
-        self.text_widget.tag_configure('zh_italic', font=('Noto Sans SC', self.current_font_size, 'italic'))
-        # 配置英文斜体标签
-        self.text_widget.tag_configure('en_italic', font=('Inter', self.current_font_size, 'italic'))
-        
-        # 配置中文加粗标签
+        # 配置单一效果标签
         self.text_widget.tag_configure('zh_bold', font=('Noto Sans SC', self.current_font_size, 'bold'))
-        # 配置英文加粗标签
         self.text_widget.tag_configure('en_bold', font=('Inter', self.current_font_size, 'bold'))
         
-        # 配置中文加粗斜体标签
-        self.text_widget.tag_configure('zh_bold_italic', font=('Noto Sans SC', self.current_font_size, 'bold italic'))
-        # 配置英文加粗斜体标签
-        self.text_widget.tag_configure('en_bold_italic', font=('Inter', self.current_font_size, 'bold italic'))
-
-        # 配置中文高亮标签
         self.text_widget.tag_configure('zh_highlight', font=('Noto Sans SC', self.current_font_size), background='#404040')
-        # 配置英文高亮标签
         self.text_widget.tag_configure('en_highlight', font=('Inter', self.current_font_size), background='#404040')
         
-        # 配置水平线标签
+        # 配置组合效果标签
+        self.text_widget.tag_configure('zh_bold_highlight', font=('Noto Sans SC', self.current_font_size, 'bold'), background='#404040')
+        self.text_widget.tag_configure('en_bold_highlight', font=('Inter', self.current_font_size, 'bold'), background='#404040')
+        
+        # 配置其他标签
         self.text_widget.tag_configure('horizontal_line', font=('Inter', self.current_font_size), foreground='#666666')
         
-        # 配置引用标签 - 设置左对齐，20像素缩进，使用粗体
+        # 配置引用标签
         self.text_widget.tag_configure('zh_quote', font=('Noto Sans SC', self.current_font_size, 'bold'), 
                                      lmargin1=20, lmargin2=20)
         self.text_widget.tag_configure('en_quote', font=('Inter', self.current_font_size, 'bold'), 
