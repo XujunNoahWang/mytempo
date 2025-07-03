@@ -183,7 +183,7 @@ class LoadingWindow:
 class DocumentViewer:
     """文档查看器类"""
     # 版本号
-    VERSION = "0.3.8"  # 统一了窗口居中逻辑
+    VERSION = "0.3.9"  # 修复了水平线长度问题
     
     # 支持的字体大小
     FONT_SIZES = [20, 22, 24, 28, 32, 36, 48, 60, 72]
@@ -582,6 +582,9 @@ class DocumentViewer:
         
         # 配置文本框的滚动
         self.text_widget.configure(yscrollcommand=scrollbar.set)
+        
+        # 绑定窗口大小改变事件
+        self.window.bind('<Configure>', self.on_window_resize)
 
     def update_window_title(self) -> None:
         """更新窗口标题，包含文件名、字体大小、滚动速度和透明度信息"""
@@ -607,8 +610,6 @@ class DocumentViewer:
             # 计算可以容纳的字符数量
             if char_width > 0:
                 line_length = max(1, int(available_width / char_width))
-                # 限制最大长度，避免过长
-                line_length = min(line_length, 200)
             else:
                 line_length = 60  # 默认值
                 
@@ -852,6 +853,45 @@ class DocumentViewer:
             # 保存透明度设置
             self.config.set("opacity_index", self.current_opacity_index)
         return 'break'
+
+    def on_window_resize(self, event: Optional[tk.Event] = None) -> None:
+        """处理窗口大小改变事件"""
+        if event and event.widget == self.window:
+            # 更新所有水平线
+            self.update_horizontal_lines()
+
+    def update_horizontal_lines(self) -> None:
+        """更新所有水平线的长度"""
+        try:
+            # 获取所有带有 horizontal_line 标签的范围
+            ranges = self.text_widget.tag_ranges('horizontal_line')
+            if not ranges:
+                return
+                
+            # 计算新的水平线长度
+            line_length = self.calculate_horizontal_line_length()
+            
+            # 临时启用编辑
+            self.text_widget.config(state=tk.NORMAL)
+            
+            # 每次处理两个索引（开始和结束）
+            for i in range(0, len(ranges), 2):
+                start = ranges[i]
+                end = ranges[i + 1]
+                
+                # 获取当前行的内容
+                current_line = self.text_widget.get(start, end).strip()
+                
+                # 只处理水平线（由 ─ 字符组成的行）
+                if all(c == '─' for c in current_line):
+                    # 替换为新长度的水平线
+                    self.text_widget.delete(start, end)
+                    self.text_widget.insert(start, '─' * line_length, 'horizontal_line')
+            
+            # 重新禁用编辑
+            self.text_widget.config(state=tk.DISABLED)
+        except Exception as e:
+            print(f"Error updating horizontal lines: {e}")
 
 class MyTempoApp:
     def __init__(self) -> None:
