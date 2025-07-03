@@ -9,7 +9,7 @@ import json
 from typing import List, Tuple, Optional, Dict, Any
 from font_loader import load_fonts
 
-__version__ = '0.3.5'  # 更新版本号：修复了嵌套格式（加粗+高亮）的显示问题
+__version__ = '0.3.6'  # 更新版本号：恢复斜体文本的支持（* 和 _）
 
 class UserConfig:
     """用户配置管理类"""
@@ -398,26 +398,23 @@ class DocumentViewer:
                                     base = 'en'
                                 
                                 # 处理组合标签
-                                if 'bold' in tags and 'highlight' in tags:
-                                    char_tags.append(f'{base}_bold_highlight')
+                                tag_combination = '_'.join(sorted(tags))  # 对标签进行排序，确保一致性
+                                if tag_combination:
+                                    char_tags.append(f'{base}_{tag_combination}')
                                 else:
-                                    # 应用单一标签
-                                    for tag in tags:
-                                        char_tags.append(f'{base}_{tag}')
-                                
-                                # 如果没有标签，使用基本标签
-                                if not char_tags:
                                     char_tags.append(base)
                                 
                                 self.text_widget.insert(tk.END, char, tuple(char_tags))
 
                         # 处理文本中的格式
                         def process_formats(text, current_tags):
+                            """处理文本中的格式"""
                             # 尝试匹配不同的格式
                             bold_match = re.search(r'\*\*(.*?)\*\*', text)
                             highlight_match = re.search(r'==(.*?)==', text)
+                            italic_match = re.search(r'[*_](.*?)[*_]', text)  # 匹配 *text* 或 _text_
 
-                            if not bold_match and not highlight_match:
+                            if not any([bold_match, highlight_match, italic_match]):
                                 # 如果没有找到任何格式标记，直接输出文本
                                 apply_format(text, current_tags)
                                 return
@@ -428,6 +425,8 @@ class DocumentViewer:
                                 matches.append(('bold', bold_match))
                             if highlight_match:
                                 matches.append(('highlight', highlight_match))
+                            if italic_match:
+                                matches.append(('italic', italic_match))
 
                             # 按照起始位置排序
                             matches.sort(key=lambda x: x[1].start())
@@ -439,10 +438,7 @@ class DocumentViewer:
 
                             # 处理带格式的文本
                             inner_text = match.group(1)
-                            if format_type == 'bold':
-                                process_formats(inner_text, current_tags + ['bold'])
-                            else:  # highlight
-                                process_formats(inner_text, current_tags + ['highlight'])
+                            process_formats(inner_text, current_tags + [format_type])
 
                             # 处理格式标记之后的文本
                             if match.end() < len(text):
@@ -510,12 +506,24 @@ class DocumentViewer:
         self.text_widget.tag_configure('zh_bold', font=('Noto Sans SC', self.current_font_size, 'bold'))
         self.text_widget.tag_configure('en_bold', font=('Inter', self.current_font_size, 'bold'))
         
+        self.text_widget.tag_configure('zh_italic', font=('Noto Sans SC', self.current_font_size, 'italic'))
+        self.text_widget.tag_configure('en_italic', font=('Inter', self.current_font_size, 'italic'))
+        
         self.text_widget.tag_configure('zh_highlight', font=('Noto Sans SC', self.current_font_size), background='#404040')
         self.text_widget.tag_configure('en_highlight', font=('Inter', self.current_font_size), background='#404040')
         
         # 配置组合效果标签
         self.text_widget.tag_configure('zh_bold_highlight', font=('Noto Sans SC', self.current_font_size, 'bold'), background='#404040')
         self.text_widget.tag_configure('en_bold_highlight', font=('Inter', self.current_font_size, 'bold'), background='#404040')
+        
+        self.text_widget.tag_configure('zh_italic_highlight', font=('Noto Sans SC', self.current_font_size, 'italic'), background='#404040')
+        self.text_widget.tag_configure('en_italic_highlight', font=('Inter', self.current_font_size, 'italic'), background='#404040')
+        
+        self.text_widget.tag_configure('zh_bold_italic', font=('Noto Sans SC', self.current_font_size, 'bold italic'))
+        self.text_widget.tag_configure('en_bold_italic', font=('Inter', self.current_font_size, 'bold italic'))
+        
+        self.text_widget.tag_configure('zh_bold_italic_highlight', font=('Noto Sans SC', self.current_font_size, 'bold italic'), background='#404040')
+        self.text_widget.tag_configure('en_bold_italic_highlight', font=('Inter', self.current_font_size, 'bold italic'), background='#404040')
         
         # 配置其他标签
         self.text_widget.tag_configure('horizontal_line', font=('Inter', self.current_font_size), foreground='#666666')
