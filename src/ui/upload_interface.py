@@ -6,8 +6,8 @@ import tkinter as tk
 import tkinterdnd2 as tkdnd
 from tkinter import filedialog, messagebox
 from typing import List, Optional, Callable
-from ..utils.constants import COLORS, PADDING, MAIN_WINDOW_WIDTH, MAIN_WINDOW_HEIGHT, SUPPORTED_EXTENSIONS
-from .styles import StyleManager
+from src.utils.constants import COLORS, PADDING, MAIN_WINDOW_WIDTH, MAIN_WINDOW_HEIGHT, SUPPORTED_EXTENSIONS
+from src.ui.styles import StyleManager
 
 
 class UploadInterface:
@@ -22,10 +22,18 @@ class UploadInterface:
         """
         self.root = root
         self.on_file_selected = on_file_selected
-        
-        # Configure main window
+        self.card_width = 340  # 卡片宽度
+        self.card_height = 340  # 卡片高度
+        # 直接用屏幕中心定位geometry
+        window_width = MAIN_WINDOW_WIDTH
+        window_height = MAIN_WINDOW_HEIGHT
+        screen_width = self.root.winfo_screenwidth()
+        screen_height = self.root.winfo_screenheight()
+        x = (screen_width - window_width) // 2
+        y = (screen_height - window_height) // 2
+        self.root.geometry(f"{window_width}x{window_height}+{x}+{y}")
+        self.root.minsize(window_width, window_height)
         self.root.title("My Tempo")
-        self.root.geometry(f"{MAIN_WINDOW_WIDTH}x{MAIN_WINDOW_HEIGHT}")
         self.root.configure(bg=COLORS['main_bg'])
         
         # Set up styles
@@ -35,22 +43,8 @@ class UploadInterface:
         self.create_upload_interface()
         self.setup_drag_drop()
         
-    def center_window(self) -> None:
-        """Center window on screen."""
+        # 确保所有控件创建后再居中窗口
         self.root.update_idletasks()
-        width = self.root.winfo_width()
-        height = self.root.winfo_height()
-        
-        # Get screen dimensions
-        screen_width = self.root.winfo_screenwidth()
-        screen_height = self.root.winfo_screenheight()
-        
-        # Calculate window position to center it
-        x = (screen_width - width) // 2
-        y = (screen_height - height) // 2
-        
-        # Set window position
-        self.root.geometry(f'{width}x{height}+{x}+{y}')
         
     def create_rounded_rectangle(self, canvas: tk.Canvas, x1: int, y1: int, x2: int, y2: int, 
                                radius: int = 12, **kwargs) -> int:
@@ -90,8 +84,11 @@ class UploadInterface:
                 tags="bg_rect"
             )
             
-            self.drop_frame.configure(width=width-20, height=height-20)
-            self.drop_canvas.coords(self.canvas_frame, 10, 10)
+            # 居中卡片
+            x = (width - self.card_width) // 2
+            y = (height - self.card_height) // 2
+            self.drop_canvas.coords(self.canvas_frame, x, y)
+            self.drop_frame.configure(width=self.card_width, height=self.card_height)
             
     def create_upload_interface(self) -> None:
         """Create file upload interface."""
@@ -109,11 +106,15 @@ class UploadInterface:
         
         self.drop_canvas.bind('<Configure>', self.draw_rounded_rect)
         
-        self.drop_frame = tk.Frame(self.drop_canvas, bg=COLORS['white'])
-        self.canvas_frame = self.drop_canvas.create_window(0, 0, anchor='nw', window=self.drop_frame)
+        self.drop_frame = tk.Frame(self.drop_canvas, bg=COLORS['white'], width=self.card_width, height=self.card_height)
+        self.canvas_frame = self.drop_canvas.create_window(0, 0, anchor='nw', window=self.drop_frame, width=self.card_width, height=self.card_height)
         
+        # 让drop_frame自适应canvas
+        self.drop_frame.pack_propagate(False)
+        
+        # 内容区用pack撑满
         drop_content_frame = tk.Frame(self.drop_frame, bg=COLORS['white'])
-        drop_content_frame.place(relx=0.5, rely=0.5, anchor='center')
+        drop_content_frame.pack(expand=True, fill='both')
         
         # File icon
         tk.Label(drop_content_frame,

@@ -7,12 +7,12 @@ from tkinter import ttk, messagebox
 import tkinter.font as tkFont
 import os
 from typing import Optional
-from ..core.config import UserConfig
-from ..core.text_processor import TextProcessor
-from ..core.scroll_manager import ScrollManager
-from ..ui.loading_window import LoadingWindow
-from ..ui.styles import StyleManager
-from ..utils.constants import (
+from src.core.config import UserConfig
+from src.core.text_processor import TextProcessor
+from src.core.scroll_manager import ScrollManager
+from src.ui.loading_window import LoadingWindow
+from src.ui.styles import StyleManager
+from src.utils.constants import (
     FONT_SIZES, DEFAULT_FONT_SIZE, DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT,
     OPACITY_LEVELS, DEFAULT_OPACITY_INDEX, COLORS, PADDING
 )

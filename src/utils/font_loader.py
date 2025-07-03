@@ -2,6 +2,21 @@ import os
 from ctypes import windll
 from typing import Tuple, List, Callable, Optional
 
+def get_fonts_dir():
+    current = os.path.abspath(__file__)
+    dir_path = os.path.dirname(current)
+    while True:
+        fonts_path = os.path.join(dir_path, 'fonts')
+        if os.path.isdir(fonts_path):
+            return fonts_path
+        parent = os.path.dirname(dir_path)
+        if parent == dir_path:
+            break
+        dir_path = parent
+    return None
+
+FONTS_DIR = get_fonts_dir()
+
 def add_font_resource(font_path: str) -> int:
     """Register font file in Windows
     
@@ -22,20 +37,17 @@ def load_fonts(progress_callback: Optional[Callable[[int, int, str], None]] = No
     Returns:
         bool: Whether at least one font was loaded successfully
     """
-    fonts_dir = os.path.join(os.path.dirname(__file__), 'fonts')
-    
-    if not os.path.exists(fonts_dir):
+    if not FONTS_DIR:
         print("Fonts folder not found")
         return False
     
     font_files: List[Tuple[str, str]] = []
     
     # Collect all font files
-    for root, _, files in os.walk(fonts_dir):
+    for root, _, files in os.walk(FONTS_DIR):
         font_files.extend(
             (os.path.join(root, file), file)
-            for file in files
-            if file.endswith('.ttf')
+            for file in files if file.lower().endswith('.ttf')
         )
     
     if not font_files:

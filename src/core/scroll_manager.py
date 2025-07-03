@@ -4,7 +4,7 @@ Scroll management for MyTempo document viewer.
 
 import tkinter as tk
 from typing import Optional, Callable
-from ..utils.constants import BASE_SPEED, SCROLL_SPEEDS, SCROLL_INTERVAL
+from src.utils.constants import BASE_SPEED, SCROLL_SPEEDS, SCROLL_INTERVAL
 
 
 class ScrollManager:

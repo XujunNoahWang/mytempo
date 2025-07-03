@@ -4,10 +4,10 @@ Main application class for MyTempo.
 
 import tkinterdnd2 as tkdnd
 from typing import List
-from ..ui.loading_window import LoadingWindow
-from ..ui.upload_interface import UploadInterface
-from .document_viewer import DocumentViewer
-from ..utils.font_loader import load_fonts
+from src.ui.loading_window import LoadingWindow
+from src.ui.upload_interface import UploadInterface
+from src.app.document_viewer import DocumentViewer
+from src.utils.font_loader import load_fonts
 
 
 class MyTempoApp:
@@ -30,9 +30,6 @@ class MyTempoApp:
         
         # Create upload interface
         self.upload_interface = UploadInterface(self.root, self.on_file_selected)
-        
-        # Center window after all components are created
-        self.upload_interface.center_window()
         
         # Close loading window and show main window
         loading_window.destroy()

@@ -3,7 +3,7 @@ Constants used throughout the MyTempo application.
 """
 
 # Application version
-VERSION = "0.4.3"
+VERSION = "0.4.5"
 
 # Font configuration
 FONT_SIZES = [20, 22, 24, 28, 32, 36, 48, 60, 72]

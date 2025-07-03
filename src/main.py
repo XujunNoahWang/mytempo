@@ -2,7 +2,7 @@
 Main entry point for MyTempo application.
 """
 
-from app.mytempo_app import MyTempoApp
+from src.app.mytempo_app import MyTempoApp
 
 
 def main():

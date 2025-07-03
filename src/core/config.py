@@ -5,7 +5,7 @@ Configuration management for MyTempo application.
 import json
 import os
 from typing import Dict, Any, Optional
-from ..utils.constants import (
+from src.utils.constants import (
     DEFAULT_FONT_SIZE, DEFAULT_SPEED_INDEX, DEFAULT_OPACITY_INDEX,
     DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT, CONFIG_FILE
 )

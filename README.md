@@ -142,6 +142,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Version History
 
+- **v0.4.5**: Upload interface and window now always centered on screen; bugfixes and UI polish
 - **v0.4.3**: Complete code refactoring with modular architecture
 - **v0.4.2**: Fixed horizontal line rendering
 - **v0.4.1**: Improved text processing

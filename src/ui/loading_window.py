@@ -6,7 +6,7 @@ import tkinter as tk
 from tkinter import ttk
 import time
 from typing import Optional, Callable
-from ..utils.constants import COLORS, MIN_LOADING_TIME, LOADING_COMPLETE_DELAY
+from src.utils.constants import COLORS, MIN_LOADING_TIME, LOADING_COMPLETE_DELAY
 
 
 class LoadingWindow:
@@ -67,7 +67,7 @@ class LoadingWindow:
         self.loading_label.pack(pady=(25, 15))
         
         # Progress bar
-        from .styles import StyleManager
+        from src.ui.styles import StyleManager
         progress_style = StyleManager.configure_progress_bar_style()
         
         self.progress_var = tk.DoubleVar()
