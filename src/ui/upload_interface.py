@@ -6,17 +6,14 @@ import tkinter as tk
 from tkinter import filedialog, messagebox
 from typing import Callable, List, Optional
 
-import tkinterdnd2 as tkdnd
-
-from src.ui.styles import StyleManager
 from src.utils.constants import (COLORS, MAIN_WINDOW_HEIGHT, MAIN_WINDOW_WIDTH,
                                  PADDING, SUPPORTED_EXTENSIONS)
 
 
 class UploadInterface:
-    """File upload interface with drag and drop support"""
+    """File upload interface with file selection support"""
     
-    def __init__(self, root: tkdnd.Tk, on_file_selected: Callable[[List[str]], None]) -> None:
+    def __init__(self, root: tk.Tk, on_file_selected: Callable[[List[str]], None]) -> None:
         """Initialize upload interface.
         
         Args:
@@ -45,7 +42,6 @@ class UploadInterface:
         
         # Create interface
         self.create_upload_interface()
-        self.setup_drag_drop()
         
         # Ensure all widgets are created before centering window
         self.root.update_idletasks()
@@ -129,14 +125,14 @@ class UploadInterface:
         
         # Main text
         tk.Label(drop_content_frame,
-                text="Drop Markdown files here",
+                text="Select Markdown files",
                 font=('Inter', 16, 'bold'),
                 fg=COLORS['text_primary'],
                 bg=COLORS['white']).pack(pady=(0, 8))
         
         # Sub text
         tk.Label(drop_content_frame,
-                text="or click the button below to browse",
+                text="Click the button below to browse",
                 font=('Inter', 12),
                 fg=COLORS['text_secondary'],
                 bg=COLORS['white']).pack(pady=(0, 24))
@@ -174,39 +170,6 @@ class UploadInterface:
         self.button_canvas.bind('<Leave>', self.on_button_leave)
         self.button_canvas.configure(cursor='hand2')
         
-        # Drag area events
-        for widget in [self.drop_canvas, self.drop_frame]:
-            widget.bind('<Enter>', self.on_drag_enter)
-            widget.bind('<Leave>', self.on_drag_leave)
-        
-    def setup_drag_drop(self) -> None:
-        """Set up drag and drop functionality."""
-        for widget in [self.drop_canvas, self.drop_frame]:
-            widget.drop_target_register(tkdnd.DND_FILES)
-            widget.dnd_bind('<<DropEnter>>', self.on_drag_enter)
-            widget.dnd_bind('<<DropLeave>>', self.on_drag_leave)
-            widget.dnd_bind('<<Drop>>', self.on_file_drop)
-        
-    def on_drag_enter(self, event: Optional[tk.Event] = None) -> None:
-        """Handle mouse enter drag area."""
-        self.drop_canvas.delete("bg_rect")
-        width = self.drop_canvas.winfo_width()
-        height = self.drop_canvas.winfo_height()
-        if width > 1 and height > 1:
-            self.create_rounded_rectangle(
-                self.drop_canvas,
-                8, 8, width-8, height-8, 
-                radius=12, 
-                fill=COLORS['drop_hover'], 
-                outline=COLORS['primary'], 
-                width=2,
-                tags="bg_rect"
-            )
-        
-    def on_drag_leave(self, event: Optional[tk.Event] = None) -> None:
-        """Handle mouse leave drag area."""
-        self.draw_rounded_rect()
-        
     def on_button_enter(self, event: Optional[tk.Event] = None) -> None:
         """Handle mouse enter button."""
         self.button_canvas.delete("button_bg")
@@ -233,30 +196,33 @@ class UploadInterface:
         )
         self.button_canvas.tag_raise("button_text")
         
-    def on_file_drop(self, event: tk.Event) -> None:
-        """Handle file drop event."""
-        file_paths = self.root.tk.splitlist(event.data)
-        self.process_files(file_paths)
-        
     def select_file(self) -> None:
-        """Open file selection dialog."""
+        """Open file dialog to select files."""
         file_paths = filedialog.askopenfilenames(
-            title="Select Markdown Files",
-            filetypes=[("Markdown files", "*.md *.markdown")]
+            title="Select Markdown files",
+            filetypes=[
+                ("Markdown files", "*.md *.markdown"),
+                ("All files", "*.*")
+            ]
         )
         if file_paths:
-            self.process_files(file_paths)
-            
+            self.process_files(list(file_paths))
+    
     def process_files(self, file_paths: List[str]) -> None:
-        """Process selected files."""
+        """Process selected files.
+        
+        Args:
+            file_paths: List of selected file paths
+        """
+        # Filter for supported extensions
         valid_files = []
         for file_path in file_paths:
-            if file_path.lower().endswith(SUPPORTED_EXTENSIONS):
+            if any(file_path.lower().endswith(ext) for ext in SUPPORTED_EXTENSIONS):
                 valid_files.append(file_path)
             else:
                 messagebox.showwarning(
-                    "Invalid File Format",
-                    f"File {file_path} is not a Markdown file"
+                    "Unsupported file type",
+                    f"File {file_path} is not a supported Markdown file."
                 )
         
         if valid_files:

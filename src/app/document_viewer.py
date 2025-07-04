@@ -171,6 +171,7 @@ class DocumentViewer:
         
         # Initialize scroll manager
         self.scroll_manager = ScrollManager(self.text_widget, self.config)
+        self.scroll_manager.parent_window = self  # Set reference for title updates
         self.scroll_manager.bind_scroll_events(self.window)
         
         # Bind keyboard events

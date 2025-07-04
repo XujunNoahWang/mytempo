@@ -4,7 +4,7 @@ Main application class for MyTempo.
 
 from typing import List
 
-import tkinterdnd2 as tkdnd
+import tkinter as tk
 
 from src.ui.loading_window import LoadingWindow
 from src.ui.upload_interface import UploadInterface
@@ -17,7 +17,7 @@ class MyTempoApp:
     def __init__(self) -> None:
         """Initialize MyTempo application."""
         # Create main window first but don't show it
-        self.root = tkdnd.Tk()
+        self.root = tk.Tk()
         self.root.withdraw()
         
         # Show loading window

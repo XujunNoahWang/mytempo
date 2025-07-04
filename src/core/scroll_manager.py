@@ -196,6 +196,9 @@ class ScrollManager:
         if self.current_speed_index < len(SCROLL_SPEEDS) - 1:
             self.current_speed_index += 1
             self.config.set("speed_index", self.current_speed_index)
+            # Notify parent window to update title
+            if hasattr(self, 'parent_window'):
+                self.parent_window.update_window_title()
         return 'break'
     
     def decrease_speed(self, event: Optional[tk.Event] = None) -> str:
@@ -210,6 +213,9 @@ class ScrollManager:
         if self.current_speed_index > 0:
             self.current_speed_index -= 1
             self.config.set("speed_index", self.current_speed_index)
+            # Notify parent window to update title
+            if hasattr(self, 'parent_window'):
+                self.parent_window.update_window_title()
         return 'break'
     
     def get_current_speed_multiplier(self) -> int:
