@@ -39,7 +39,8 @@ class UploadInterface:
         self.root.title("My Tempo")
         self.root.configure(bg=COLORS['main_bg'])
         
-        # Set up styles
+        # Set up styles - Import StyleManager here to avoid circular import
+        from src.ui.styles import StyleManager
         StyleManager.setup_styles()
         
         # Create interface
@@ -122,21 +123,21 @@ class UploadInterface:
         # File icon
         tk.Label(drop_content_frame,
                 text="📄",
-                font=StyleManager.get_font(size=48),
+                font=('Inter', 48),
                 bg=COLORS['white'],
                 fg=COLORS['primary']).pack(pady=(0, 16))
         
         # Main text
         tk.Label(drop_content_frame,
                 text="Drop Markdown files here",
-                font=StyleManager.get_font(size=16, weight='bold'),
+                font=('Inter', 16, 'bold'),
                 fg=COLORS['text_primary'],
                 bg=COLORS['white']).pack(pady=(0, 8))
         
         # Sub text
         tk.Label(drop_content_frame,
                 text="or click the button below to browse",
-                font=StyleManager.get_font(size=12),
+                font=('Inter', 12),
                 fg=COLORS['text_secondary'],
                 bg=COLORS['white']).pack(pady=(0, 24))
         
@@ -162,7 +163,7 @@ class UploadInterface:
         self.button_text = self.button_canvas.create_text(
             70, 22,
             text="Browse Files",
-            font=StyleManager.get_font(size=15, weight='bold'),
+            font=('Inter', 15, 'bold'),
             fill=COLORS['white'],
             tags="button_text"
         )

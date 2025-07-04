@@ -12,7 +12,6 @@ from src.core.config import UserConfig
 from src.core.scroll_manager import ScrollManager
 from src.core.text_processor import TextProcessor
 from src.ui.loading_window import LoadingWindow
-from src.ui.styles import StyleManager
 from src.utils.constants import (COLORS, DEFAULT_FONT_SIZE,
                                  DEFAULT_OPACITY_INDEX, DEFAULT_WINDOW_HEIGHT,
                                  DEFAULT_WINDOW_WIDTH, FONT_SIZES,
@@ -153,7 +152,8 @@ class DocumentViewer:
         )
         self.text_widget.pack(expand=True, fill='both')
         
-        # Configure text tags
+        # Configure text tags - Import StyleManager here to avoid circular import
+        from src.ui.styles import StyleManager
         StyleManager.configure_text_tags(self.text_widget, self.current_font_size)
         
         # Disable text editing
@@ -270,7 +270,8 @@ class DocumentViewer:
             # Update font size
             self.text_widget.configure(font=('Noto Sans SC', self.current_font_size))
             
-            # Reconfigure text tags
+            # Reconfigure text tags - Import StyleManager here to avoid circular import
+            from src.ui.styles import StyleManager
             StyleManager.configure_text_tags(self.text_widget, self.current_font_size)
             
             # Restore scroll position

@@ -10,7 +10,7 @@ import os
 # Add src directory to Python path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
 
-from app.mytempo_app import MyTempoApp
+from src.app.mytempo_app import MyTempoApp
 
 __version__ = '0.5.1'  # Fixed circular import issues and improved module structure
 

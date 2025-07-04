@@ -6,7 +6,6 @@ from typing import List
 
 import tkinterdnd2 as tkdnd
 
-from src.app.document_viewer import DocumentViewer
 from src.ui.loading_window import LoadingWindow
 from src.ui.upload_interface import UploadInterface
 from src.utils.font_loader import load_fonts
@@ -47,6 +46,8 @@ class MyTempoApp:
         if file_paths:
             # Process valid Markdown files - only open first file
             try:
+                # Import DocumentViewer here to avoid circular import
+                from src.app.document_viewer import DocumentViewer
                 DocumentViewer(self.root, file_paths[0])
                 if len(file_paths) > 1:
                     import os
