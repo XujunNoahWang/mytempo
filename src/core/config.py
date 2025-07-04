@@ -10,7 +10,7 @@ from src.utils.constants import (CONFIG_FILE, DEFAULT_FONT_SIZE,
                                  DEFAULT_OPACITY_INDEX, DEFAULT_SPEED_INDEX,
                                  DEFAULT_WINDOW_HEIGHT, DEFAULT_WINDOW_WIDTH)
 
-APP_VERSION = '0.5.2'  # No console window, improved Windows compatibility
+APP_VERSION = '0.5.3'  # No console window, improved Windows compatibility
 
 class UserConfig:
     """User configuration management class"""

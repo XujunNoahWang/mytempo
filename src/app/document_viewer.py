@@ -18,7 +18,7 @@ from src.utils.constants import (COLORS, DEFAULT_FONT_SIZE,
                                  OPACITY_LEVELS, PADDING)
 
 # Version number
-VERSION = "0.5.1"  # Fixed circular import issues and improved module structure
+VERSION = "0.5.3"  # Fixed circular import issues and improved module structure
 
 class DocumentViewer:
     """Document viewer class for displaying Markdown files"""
