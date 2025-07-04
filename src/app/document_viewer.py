@@ -17,6 +17,8 @@ from src.utils.constants import (
     OPACITY_LEVELS, DEFAULT_OPACITY_INDEX, COLORS, PADDING
 )
 
+# Version number
+VERSION = "0.4.6"  # Project structure and codebase fully optimized
 
 class DocumentViewer:
     """Document viewer class for displaying Markdown files"""

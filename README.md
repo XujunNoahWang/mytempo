@@ -18,6 +18,8 @@ A modern, elegant Markdown reader application with smooth scrolling and beautifu
 MyTempo/
 ├── src/                          # Source code directory
 │   ├── main.py                   # Application entry point
+│   ├── assets/                   # Application assets
+│   │   └── fonts/                # Font files
 │   ├── app/                      # Application components
 │   │   ├── mytempo_app.py        # Main application class
 │   │   └── document_viewer.py    # Document viewer component
@@ -32,9 +34,7 @@ MyTempo/
 │   └── utils/                    # Utilities
 │       ├── constants.py          # Application constants
 │       └── font_loader.py        # Font loading utilities
-├── fonts/                        # Font files
-├── run.py                        # Launch script
-├── main.py                       # Legacy entry point (deprecated)
+├── main.py                       # Main entry point
 ├── requirements.txt              # Python dependencies
 ├── README.md                     # This file
 ├── LICENSE                       # License file
@@ -56,7 +56,7 @@ pip install -r requirements.txt
 
 3. Run the application:
 ```bash
-python run.py
+python main.py
 ```
 
 ## Usage
@@ -142,6 +142,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Version History
 
+- **v0.4.6**: 项目结构和代码库全面精简优化，删除所有冗余入口和无用文件，README同步更新。
 - **v0.4.5**: Upload interface and window now always centered on screen; bugfixes and UI polish
 - **v0.4.3**: Complete code refactoring with modular architecture
 - **v0.4.2**: Fixed horizontal line rendering

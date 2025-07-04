@@ -3,12 +3,22 @@ from ctypes import windll
 from typing import Tuple, List, Callable, Optional
 
 def get_fonts_dir():
+    """Get fonts directory path"""
     current = os.path.abspath(__file__)
     dir_path = os.path.dirname(current)
+    
+    # Look for fonts directory in the project structure
     while True:
+        # Check for src/assets/fonts
+        fonts_path = os.path.join(dir_path, 'assets', 'fonts')
+        if os.path.isdir(fonts_path):
+            return fonts_path
+        
+        # Check for fonts in current directory (backward compatibility)
         fonts_path = os.path.join(dir_path, 'fonts')
         if os.path.isdir(fonts_path):
             return fonts_path
+            
         parent = os.path.dirname(dir_path)
         if parent == dir_path:
             break
