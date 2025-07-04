@@ -10,6 +10,7 @@ A modern, elegant Markdown reader application with smooth scrolling and beautifu
 - **Font Size Control**: Dynamic font size adjustment
 - **Drag & Drop**: Easy file loading with drag and drop support
 - **Markdown Support**: Full Markdown syntax support including headings, quotes, and formatting
+- **Presentation Remote Support**: Automatic detection and mapping of USB presentation remotes
 - **Settings Persistence**: User preferences are automatically saved
 
 ## Project Structure
@@ -74,6 +75,14 @@ python main.py
 - **Home/End**: Jump to start/end of document
 - **Hold Down Arrow**: Start smooth scrolling
 - **Release Down Arrow**: Stop smooth scrolling
+
+#### Presentation Remote Support
+MyTempo automatically detects USB presentation remotes and maps common controls:
+- **Previous/Next buttons**: Page up/down
+- **Start/Stop buttons**: Start/stop smooth scrolling
+- **Home/End buttons**: Jump to start/end of document
+- **Speed buttons**: Adjust scroll speed
+- **Additional keys**: F5-F12, Ctrl+Page Up/Down, Ctrl+Up/Down
 
 #### Display Settings
 - **Left/Right Arrow**: Decrease/increase font size
@@ -142,6 +151,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Version History
 
+- **v0.4.7**: 优化键盘与翻页笔控制逻辑，Page Down/Up可自定义为缓慢滚动或单步移动，体验更佳。
 - **v0.4.6**: 项目结构和代码库全面精简优化，删除所有冗余入口和无用文件，README同步更新。
 - **v0.4.5**: Upload interface and window now always centered on screen; bugfixes and UI polish
 - **v0.4.3**: Complete code refactoring with modular architecture

@@ -18,7 +18,7 @@ from src.utils.constants import (
 )
 
 # Version number
-VERSION = "0.4.6"  # Project structure and codebase fully optimized
+VERSION = "0.4.7"  # Keyboard and remote control logic optimized
 
 class DocumentViewer:
     """Document viewer class for displaying Markdown files"""
@@ -369,7 +369,10 @@ class DocumentViewer:
         """Close window and show main window."""
         # Ensure stop all scrolling
         if hasattr(self, 'scroll_manager'):
-            self.scroll_manager.stop_smooth_scroll()
+            self.scroll_manager.is_scrolling = False
+            if self.scroll_manager.scroll_id:
+                self.scroll_manager.text_widget.after_cancel(self.scroll_manager.scroll_id)
+                self.scroll_manager.scroll_id = None
         
         # Save window size
         try:
