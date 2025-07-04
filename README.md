@@ -151,9 +151,10 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Version History
 
-- **v0.4.8**: 全面格式化和清理代码，所有文件风格统一，结构极致精简。
-- **v0.4.7**: 优化键盘与翻页笔控制逻辑，Page Down/Up可自定义为缓慢滚动或单步移动，体验更佳。
-- **v0.4.6**: 项目结构和代码库全面精简优化，删除所有冗余入口和无用文件，README同步更新。
+- **v0.5.0**: Internationalization - all code, comments, warnings, and documentation are now in English.
+- **v0.4.8**: Fully formatted and cleaned up the codebase, all files are style-consistent, and the structure is extremely concise.
+- **v0.4.7**: Optimized keyboard and presentation remote control logic, Page Down/Up can be customized for smooth scrolling or single-step movement, providing a better experience.
+- **v0.4.6**: Fully streamlined project structure and codebase, removed all redundant entry points and unused files, README updated accordingly.
 - **v0.4.5**: Upload interface and window now always centered on screen; bugfixes and UI polish
 - **v0.4.3**: Complete code refactoring with modular architecture
 - **v0.4.2**: Fixed horizontal line rendering

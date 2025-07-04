@@ -19,7 +19,7 @@ from src.utils.constants import (COLORS, DEFAULT_FONT_SIZE,
                                  OPACITY_LEVELS, PADDING)
 
 # Version number
-VERSION = "0.4.8"  # Codebase fully formatted and cleaned up
+VERSION = "0.5.0"  # Internationalization: all code, comments, and docs in English
 
 class DocumentViewer:
     """Document viewer class for displaying Markdown files"""

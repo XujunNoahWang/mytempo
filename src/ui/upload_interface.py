@@ -25,9 +25,9 @@ class UploadInterface:
         """
         self.root = root
         self.on_file_selected = on_file_selected
-        self.card_width = 340  # 卡片宽度
-        self.card_height = 340  # 卡片高度
-        # 直接用屏幕中心定位geometry
+        self.card_width = 340  # Card width
+        self.card_height = 340  # Card height
+        # Use screen center to locate geometry
         window_width = MAIN_WINDOW_WIDTH
         window_height = MAIN_WINDOW_HEIGHT
         screen_width = self.root.winfo_screenwidth()
@@ -46,7 +46,7 @@ class UploadInterface:
         self.create_upload_interface()
         self.setup_drag_drop()
         
-        # 确保所有控件创建后再居中窗口
+        # Ensure all widgets are created before centering window
         self.root.update_idletasks()
         
     def create_rounded_rectangle(self, canvas: tk.Canvas, x1: int, y1: int, x2: int, y2: int, 
@@ -87,7 +87,7 @@ class UploadInterface:
                 tags="bg_rect"
             )
             
-            # 居中卡片
+            # Center card
             x = (width - self.card_width) // 2
             y = (height - self.card_height) // 2
             self.drop_canvas.coords(self.canvas_frame, x, y)
@@ -112,10 +112,10 @@ class UploadInterface:
         self.drop_frame = tk.Frame(self.drop_canvas, bg=COLORS['white'], width=self.card_width, height=self.card_height)
         self.canvas_frame = self.drop_canvas.create_window(0, 0, anchor='nw', window=self.drop_frame, width=self.card_width, height=self.card_height)
         
-        # 让drop_frame自适应canvas
+        # Let drop_frame adapt to canvas
         self.drop_frame.pack_propagate(False)
         
-        # 内容区用pack撑满
+        # Fill content area with pack
         drop_content_frame = tk.Frame(self.drop_frame, bg=COLORS['white'])
         drop_content_frame.pack(expand=True, fill='both')
         

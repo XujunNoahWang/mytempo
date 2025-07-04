@@ -12,7 +12,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
 
 from main import main
 
-__version__ = '0.4.8'  # Codebase fully formatted and cleaned up
+__version__ = '0.5.0'  # Internationalization: all code, comments, and docs in English
 
 if __name__ == '__main__':
     main() 
