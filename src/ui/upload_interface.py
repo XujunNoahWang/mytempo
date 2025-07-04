@@ -36,6 +36,10 @@ class UploadInterface:
         self.root.title("My Tempo")
         self.root.configure(bg=COLORS['main_bg'])
         
+        # Set window icon
+        from src.utils.icon_setter import set_window_icon
+        set_window_icon(self.root)
+        
         # Set up styles - Import StyleManager here to avoid circular import
         from src.ui.styles import StyleManager
         StyleManager.setup_styles()

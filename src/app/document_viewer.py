@@ -57,6 +57,10 @@ class DocumentViewer:
         # Configure main window
         self.window.title(f"My Tempo - {os.path.basename(self.file_path)}")
         
+        # Set window icon
+        from src.utils.icon_setter import set_window_icon
+        set_window_icon(self.window)
+        
         # Load window size from config
         window_width = self.config.get("window_width", DEFAULT_WINDOW_WIDTH)
         window_height = self.config.get("window_height", DEFAULT_WINDOW_HEIGHT)
