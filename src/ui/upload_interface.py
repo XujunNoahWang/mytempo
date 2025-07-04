@@ -3,11 +3,14 @@ Upload interface for MyTempo application.
 """
 
 import tkinter as tk
-import tkinterdnd2 as tkdnd
 from tkinter import filedialog, messagebox
-from typing import List, Optional, Callable
-from src.utils.constants import COLORS, PADDING, MAIN_WINDOW_WIDTH, MAIN_WINDOW_HEIGHT, SUPPORTED_EXTENSIONS
+from typing import Callable, List, Optional
+
+import tkinterdnd2 as tkdnd
+
 from src.ui.styles import StyleManager
+from src.utils.constants import (COLORS, MAIN_WINDOW_HEIGHT, MAIN_WINDOW_WIDTH,
+                                 PADDING, SUPPORTED_EXTENSIONS)
 
 
 class UploadInterface:

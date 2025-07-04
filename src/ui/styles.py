@@ -5,7 +5,8 @@ UI styles and theme management for MyTempo application.
 import tkinter as tk
 from tkinter import ttk
 from typing import Tuple
-from src.utils.constants import COLORS, PADDING, CHINESE_FONT, ENGLISH_FONT
+
+from src.utils.constants import CHINESE_FONT, COLORS, ENGLISH_FONT, PADDING
 
 
 class StyleManager:

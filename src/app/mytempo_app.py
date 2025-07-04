@@ -2,11 +2,13 @@
 Main application class for MyTempo.
 """
 
-import tkinterdnd2 as tkdnd
 from typing import List
+
+import tkinterdnd2 as tkdnd
+
+from src.app.document_viewer import DocumentViewer
 from src.ui.loading_window import LoadingWindow
 from src.ui.upload_interface import UploadInterface
-from src.app.document_viewer import DocumentViewer
 from src.utils.font_loader import load_fonts
 
 
@@ -47,15 +49,15 @@ class MyTempoApp:
             try:
                 DocumentViewer(self.root, file_paths[0])
                 if len(file_paths) > 1:
-                    from tkinter import messagebox
                     import os
+                    from tkinter import messagebox
                     messagebox.showinfo(
                         "Notice",
                         f"Detected {len(file_paths)} files, currently only opening first file: \n{os.path.basename(file_paths[0])}"
                     )
             except Exception as e:
-                from tkinter import messagebox
                 import os
+                from tkinter import messagebox
                 messagebox.showerror(
                     "Failed to open file",
                     f"Cannot open file {os.path.basename(file_paths[0])}:\n{str(e)}"

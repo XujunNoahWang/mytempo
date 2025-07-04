@@ -1,6 +1,7 @@
 import os
 from ctypes import windll
-from typing import Tuple, List, Callable, Optional
+from typing import Callable, List, Optional, Tuple
+
 
 def get_fonts_dir():
     """Get fonts directory path"""

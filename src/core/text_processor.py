@@ -3,8 +3,7 @@ Text processing and Markdown parsing for MyTempo application.
 """
 
 import re
-from typing import List, Tuple, Dict, Any
-from src.utils.constants import CHINESE_FONT, ENGLISH_FONT
+from typing import List, Tuple
 
 
 class TextProcessor:

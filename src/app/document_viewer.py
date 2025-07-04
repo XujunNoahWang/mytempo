@@ -2,23 +2,24 @@
 Document viewer for MyTempo application.
 """
 
-import tkinter as tk
-from tkinter import ttk, messagebox
-import tkinter.font as tkFont
 import os
+import tkinter as tk
+import tkinter.font as tkFont
+from tkinter import messagebox, ttk
 from typing import Optional
+
 from src.core.config import UserConfig
-from src.core.text_processor import TextProcessor
 from src.core.scroll_manager import ScrollManager
+from src.core.text_processor import TextProcessor
 from src.ui.loading_window import LoadingWindow
 from src.ui.styles import StyleManager
-from src.utils.constants import (
-    FONT_SIZES, DEFAULT_FONT_SIZE, DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT,
-    OPACITY_LEVELS, DEFAULT_OPACITY_INDEX, COLORS, PADDING
-)
+from src.utils.constants import (COLORS, DEFAULT_FONT_SIZE,
+                                 DEFAULT_OPACITY_INDEX, DEFAULT_WINDOW_HEIGHT,
+                                 DEFAULT_WINDOW_WIDTH, FONT_SIZES,
+                                 OPACITY_LEVELS, PADDING)
 
 # Version number
-VERSION = "0.4.7"  # Keyboard and remote control logic optimized
+VERSION = "0.4.8"  # Codebase fully formatted and cleaned up
 
 class DocumentViewer:
     """Document viewer class for displaying Markdown files"""

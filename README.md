@@ -151,6 +151,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Version History
 
+- **v0.4.8**: 全面格式化和清理代码，所有文件风格统一，结构极致精简。
 - **v0.4.7**: 优化键盘与翻页笔控制逻辑，Page Down/Up可自定义为缓慢滚动或单步移动，体验更佳。
 - **v0.4.6**: 项目结构和代码库全面精简优化，删除所有冗余入口和无用文件，README同步更新。
 - **v0.4.5**: Upload interface and window now always centered on screen; bugfixes and UI polish

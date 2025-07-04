@@ -2,11 +2,13 @@
 Loading window for MyTempo application.
 """
 
+import time
 import tkinter as tk
 from tkinter import ttk
-import time
-from typing import Optional, Callable
-from src.utils.constants import COLORS, MIN_LOADING_TIME, LOADING_COMPLETE_DELAY
+from typing import Optional
+
+from src.utils.constants import (COLORS, LOADING_COMPLETE_DELAY,
+                                 MIN_LOADING_TIME)
 
 
 class LoadingWindow:
