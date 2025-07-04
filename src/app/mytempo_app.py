@@ -10,6 +10,7 @@ from src.ui.loading_window import LoadingWindow
 from src.ui.upload_interface import UploadInterface
 from src.utils.font_loader import load_fonts
 
+__version__ = '0.5.2'  # No console window, improved Windows compatibility
 
 class MyTempoApp:
     """Main application class for MyTempo"""

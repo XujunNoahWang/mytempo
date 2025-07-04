@@ -49,7 +49,6 @@ def load_fonts(progress_callback: Optional[Callable[[int, int, str], None]] = No
         bool: Whether at least one font was loaded successfully
     """
     if not FONTS_DIR:
-        print("Fonts folder not found")
         return False
     
     font_files: List[Tuple[str, str]] = []
@@ -62,7 +61,6 @@ def load_fonts(progress_callback: Optional[Callable[[int, int, str], None]] = No
         )
     
     if not font_files:
-        print("No font files found in fonts folder")
         return False
     
     # Register fonts
@@ -72,20 +70,11 @@ def load_fonts(progress_callback: Optional[Callable[[int, int, str], None]] = No
     for index, (font_path, filename) in enumerate(font_files, 1):
         try:
             if add_font_resource(font_path):
-                font_type = "Inter" if "Inter" in font_path else "NotoSansSC" if "NotoSansSC" in font_path else "static"
-                print(f"✓ Loaded {font_type} font: {filename}")
                 loaded_count += 1
                 
                 if progress_callback:
                     progress_callback(index, total_fonts, filename)
-            else:
-                print(f"✗ Failed to load: {filename}")
-        except Exception as e:
-            print(f"✗ Error loading: {filename} - {str(e)}")
+        except Exception:
+            pass  # Silently ignore font loading errors
     
-    if loaded_count > 0:
-        print("Font loading completed, no disk extraction needed")
-        return True
-    
-    print("Failed to load any font files")
-    return False 
+    return loaded_count > 0 

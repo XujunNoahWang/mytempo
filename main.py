@@ -12,7 +12,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
 
 from src.app.mytempo_app import MyTempoApp
 
-__version__ = '0.5.1'  # Fixed circular import issues and improved module structure
+__version__ = '0.5.2'  # No console window, improved Windows compatibility
 
 def main():
     """Main function to start the application."""

@@ -10,6 +10,7 @@ from src.utils.constants import (CONFIG_FILE, DEFAULT_FONT_SIZE,
                                  DEFAULT_OPACITY_INDEX, DEFAULT_SPEED_INDEX,
                                  DEFAULT_WINDOW_HEIGHT, DEFAULT_WINDOW_WIDTH)
 
+APP_VERSION = '0.5.2'  # No console window, improved Windows compatibility
 
 class UserConfig:
     """User configuration management class"""
@@ -46,8 +47,7 @@ class UserConfig:
                     return merged_settings
             else:
                 return self.default_settings.copy()
-        except Exception as e:
-            print(f"Error loading settings: {e}")
+        except Exception:
             return self.default_settings.copy()
     
     def save_settings(self) -> None:
@@ -55,8 +55,8 @@ class UserConfig:
         try:
             with open(self.config_file, 'w', encoding='utf-8') as f:
                 json.dump(self.settings, f, indent=2, ensure_ascii=False)
-        except Exception as e:
-            print(f"Error saving settings: {e}")
+        except Exception:
+            pass  # Silently ignore save errors
     
     def get(self, key: str, default: Any = None) -> Any:
         """Get setting value.

@@ -365,8 +365,8 @@ class DocumentViewer:
             
             # Re-disable editing
             self.text_widget.config(state=tk.DISABLED)
-        except Exception as e:
-            print(f"Error updating horizontal lines: {e}")
+        except Exception:
+            pass  # Silently ignore horizontal line update errors
 
     def close_window(self) -> None:
         """Close window and show main window."""
@@ -390,8 +390,8 @@ class DocumentViewer:
                 "window_width": width,
                 "window_height": height
             })
-        except Exception as e:
-            print(f"Error saving window size: {e}")
+        except Exception:
+            pass  # Silently ignore window size save errors
         
         self.window.destroy()
         # Re-show main window

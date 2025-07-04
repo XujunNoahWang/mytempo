@@ -7,6 +7,7 @@ import re
 import subprocess
 import tkinter as tk
 from typing import Callable, Optional
+import sys
 
 from src.utils.constants import BASE_SPEED, SCROLL_INTERVAL, SCROLL_SPEEDS
 
@@ -40,10 +41,13 @@ class ScrollManager:
         """Detect if a presentation remote is connected."""
         try:
             if platform.system() == "Windows":
+                creationflags = 0
+                if sys.platform == "win32":
+                    creationflags = subprocess.CREATE_NO_WINDOW
                 # Use PowerShell to get USB devices
                 result = subprocess.run(
                     ["powershell", "Get-PnpDevice | Where-Object {$_.Class -eq 'HIDClass'} | Select-Object FriendlyName, Status"],
-                    capture_output=True, text=True, timeout=5
+                    capture_output=True, text=True, timeout=5, creationflags=creationflags
                 )
                 
                 if result.returncode == 0:
@@ -57,7 +61,6 @@ class ScrollManager:
                     for keyword in remote_keywords:
                         if keyword in output:
                             self.presentation_remote_detected = True
-                            print(f"✓ Presentation remote detected: {keyword}")
                             break
                             
             elif platform.system() == "Darwin":  # macOS
@@ -74,7 +77,6 @@ class ScrollManager:
                     for keyword in remote_keywords:
                         if keyword in output:
                             self.presentation_remote_detected = True
-                            print(f"✓ Presentation remote detected: {keyword}")
                             break
                             
             elif platform.system() == "Linux":
@@ -91,14 +93,12 @@ class ScrollManager:
                     for keyword in remote_keywords:
                         if keyword in output:
                             self.presentation_remote_detected = True
-                            print(f"✓ Presentation remote detected: {keyword}")
                             break
                             
-        except Exception as e:
-            print(f"Error detecting presentation remote: {e}")
+        except Exception:
+            pass  # Silently ignore detection errors
         
-        if not self.presentation_remote_detected:
-            print("ℹ No presentation remote detected, using keyboard controls only")
+        # No presentation remote detected, using keyboard controls only
     
     def toggle_smooth_scroll(self, event: Optional[tk.Event] = None) -> str:
         """Toggle smooth scroll on/off."""
