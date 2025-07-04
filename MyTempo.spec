@@ -5,7 +5,7 @@ a = Analysis(
     ['main.py'],
     pathex=[],
     binaries=[],
-    datas=[],
+    datas=[('src/assets/icons/mytempo.ico', 'src/assets/icons')],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
