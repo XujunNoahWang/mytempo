@@ -10,9 +10,14 @@ import os
 # Add src directory to Python path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
 
-from main import main
+from app.mytempo_app import MyTempoApp
 
-__version__ = '0.5.0'  # Internationalization: all code, comments, and docs in English
+__version__ = '0.5.1'  # Fixed circular import issues and improved module structure
+
+def main():
+    """Main function to start the application."""
+    app = MyTempoApp()
+    app.run()
 
 if __name__ == '__main__':
     main() 
